@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block start %}
+
+    <div class="container">
+
+        <h4>YOUR BALANCE</h4>
+        <h1>$0.00</h1>
+
+        <div class="income-expense-container">
+
+            <div>
+                <h4>INCOME</h4>
+                <p class="money plus">+$0.00</p>
+            </div>
+
+            <div>
+                <h4>EXPENSES</h4>
+                <p class="money minus">-$0.00</p>
+            </div>
+
+        </div>
+
+        <h3>History</h3>
+
+        <ul class="list">
+            <!-- Transactions will come here -->
+        </ul>
+
+        <h3>Add new transaction</h3>
+
+        <form>
+
+            <div class="form-control">
+                <label>Description</label>
+
+                <input type="text" placeholder="Enter description...">
+            </div>
+
+            <div class="form-control">
+
+                <label>Amount</label>
+
+                <small>
+                    (-100 = expense, 100 = income)
+                </small>
+
+                <input type="number" placeholder="Enter amount...">
+
+            </div>
+
+            <button class="btn">
+                Add transaction
+            </button>
+
+        </form>
+
+    </div>
+
+
+
+
+{% endblock %}
