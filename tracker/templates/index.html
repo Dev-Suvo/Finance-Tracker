@@ -29,12 +29,13 @@
 
         <h3>Add new transaction</h3>
 
-        <form>
-
+        <form method="post">
+            
+            {% csrf_token %}
             <div class="form-control">
                 <label>Description</label>
 
-                <input type="text" placeholder="Enter description...">
+                <input type="text" name="description" placeholder="Enter description...">
             </div>
 
             <div class="form-control">
@@ -45,7 +46,7 @@
                     (-100 = expense, 100 = income)
                 </small>
 
-                <input type="number" placeholder="Enter amount...">
+                <input type="number" name="amount" placeholder="Enter amount...">
 
             </div>
 
@@ -58,6 +59,15 @@
     </div>
 
 
+
+    {% if messages %}
+    <script>
+        {% for message in messages %}
+        alert("{{ message }}")
+        {% endfor %}
+
+    </script>
+{% endif %}
 
 
 {% endblock %}
