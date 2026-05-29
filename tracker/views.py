@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from tracker.models import Transaction
+from django.db.models import Sum
 
 
 
@@ -22,18 +24,30 @@ def index(request):
 
         try:
             amount = float(amount)
-            print(amount,type(amount),description,type(description))
-
         except ValueError:
             messages.info(request, "Please enter a valid number!!")
             return redirect('/')
         
+        Transaction.objects.create(
+            description = description,
+            amount = amount,
+        )
         
 
         return redirect('/')
+  
+
+    context ={'transactions' : Transaction.objects.all().order_by('-uuid'),
+              'balance' : Transaction.objects.all().aggregate(balance = Sum('amount'))['balance'] or 0,
+              'income' : Transaction.objects.filter(amount__gte = 0).aggregate(income = Sum('amount'))['income'] or 0,
+              'expense' : Transaction.objects.filter(amount__lte = 0).aggregate(expense= Sum('amount'))['expense'] or 0,
+            }
 
 
 
+    return render(request, 'index.html',context)
 
 
-    return render(request, 'index.html')
+def deleteTransaction(request,uuid):
+    Transaction.objects.get(uuid = uuid).delete()
+    return redirect('/')

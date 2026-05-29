@@ -13,7 +13,3 @@ class BaseModel(models.Model):
 class Transaction(BaseModel):
     description = models.CharField(max_length= 100)
     amount = models.FloatField()
-
-
-    class Meta:
-        ordering = ('description',)

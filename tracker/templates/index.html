@@ -2,72 +2,113 @@
 
 {% block start %}
 
-    <div class="container">
+<div class="container">
 
-        <h4>YOUR BALANCE</h4>
-        <h1>$0.00</h1>
+    <h4>YOUR BALANCE</h4>
+    <h1>{{balance}}</h1>
 
-        <div class="income-expense-container">
+    <div class="income-expense-container">
 
-            <div>
-                <h4>INCOME</h4>
-                <p class="money plus">+$0.00</p>
-            </div>
-
-            <div>
-                <h4>EXPENSES</h4>
-                <p class="money minus">-$0.00</p>
-            </div>
-
+        <div>
+            <h4>INCOME</h4>
+            <p class="money plus">{{income}}</p>
         </div>
 
-        <h3>History</h3>
-
-        <ul class="list">
-            <!-- Transactions will come here -->
-        </ul>
-
-        <h3>Add new transaction</h3>
-
-        <form method="post">
-            
-            {% csrf_token %}
-            <div class="form-control">
-                <label>Description</label>
-
-                <input type="text" name="description" placeholder="Enter description...">
-            </div>
-
-            <div class="form-control">
-
-                <label>Amount</label>
-
-                <small>
-                    (-100 = expense, 100 = income)
-                </small>
-
-                <input type="number" name="amount" placeholder="Enter amount...">
-
-            </div>
-
-            <button class="btn">
-                Add transaction
-            </button>
-
-        </form>
+        <div>
+            <h4>EXPENSES</h4>
+            <p class="money minus">{{expense}}</p>
+        </div>
 
     </div>
 
+    <h3>History</h3>
 
+    <ul class="list">
 
-    {% if messages %}
-    <script>
-        {% for message in messages %}
-        alert("{{ message }}")
+        {% for transaction in transactions %}
+
+        <li class="{% if transaction.amount > 0 %}plus{% else %}minus{% endif %}">
+
+            {{ transaction.description }}
+
+            <div>
+                <span>${{ transaction.amount }}</span>
+
+                <a href="{% url 'deleteTransaction' transaction.uuid %}" class="delete-btn">
+                    x
+                </a>
+            </div>
+
+        </li>
+
+        {% empty %}
+
+        <li>
+            No transactions added yet.
+        </li>
+
         {% endfor %}
 
-    </script>
-{% endif %}
+    </ul>
 
+    <h3>Add new transaction</h3>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <div class="form-control">
+
+            <label>Description</label>
+
+            <input 
+                type="text" 
+                name="description" 
+                placeholder="Enter description..."
+                required
+            >
+
+        </div>
+
+        <div class="form-control">
+
+            <label>Amount</label>
+
+            <small>
+                (-100 = expense, 100 = income)
+            </small>
+
+            <input 
+                type="number" 
+                name="amount" 
+                placeholder="Enter amount..."
+                step="0.01"
+                required
+            >
+
+        </div>
+
+        <button class="btn">
+            Add transaction
+        </button>
+
+    </form>
+
+</div>
+
+
+{% if messages %}
+
+<script>
+
+    {% for message in messages %}
+
+        alert("{{ message }}")
+
+    {% endfor %}
+
+</script>
+
+{% endif %}
 
 {% endblock %}
