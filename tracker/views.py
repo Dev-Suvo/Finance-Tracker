@@ -51,3 +51,12 @@ def index(request):
 def deleteTransaction(request,uuid):
     Transaction.objects.get(uuid = uuid).delete()
     return redirect('/')
+
+
+
+def login(request):
+    return render(request, 'login.html')
+
+
+def register(request):
+    return render(request, 'register.html')
