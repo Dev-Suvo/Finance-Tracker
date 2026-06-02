@@ -10,6 +10,18 @@ class BaseModel(models.Model):
         abstract = True
 
 
+
+# class User(models.Model):
+
+
+
+
+
+# class Wallet(BaseModel):
+    
+
+
+
 class Transaction(BaseModel):
     description = models.CharField(max_length= 100)
     amount = models.FloatField()

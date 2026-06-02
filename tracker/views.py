@@ -1,12 +1,28 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from tracker.models import Transaction
+from tracker.models import *
 from django.db.models import Sum
 
 
 
 def index(request):
+    return render(request, 'index.html')
 
+
+
+def login(request):
+    return render(request, 'login.html')
+
+
+def register(request):
+    return render(request, 'register.html')
+
+
+def wallet(request):
+    return render(request, 'wallet.html')
+
+
+def Transaction_page(request):
     if request.method == "POST":
         description = request.POST.get('description')
         amount = request.POST.get('amount')
@@ -42,21 +58,12 @@ def index(request):
               'income' : Transaction.objects.filter(amount__gte = 0).aggregate(income = Sum('amount'))['income'] or 0,
               'expense' : Transaction.objects.filter(amount__lte = 0).aggregate(expense= Sum('amount'))['expense'] or 0,
             }
+    
+    return render(request, 'transaction.html',context)
 
-
-
-    return render(request, 'index.html',context)
 
 
 def deleteTransaction(request,uuid):
     Transaction.objects.get(uuid = uuid).delete()
     return redirect('/')
 
-
-
-def login(request):
-    return render(request, 'login.html')
-
-
-def register(request):
-    return render(request, 'register.html')
