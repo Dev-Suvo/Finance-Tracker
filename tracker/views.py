@@ -6,7 +6,15 @@ from django.db.models import Sum
 
 
 def index(request):
-    return render(request, 'index.html')
+
+    context ={'transactions' : Transaction.objects.all().order_by('-uuid'),
+              'balance' : Transaction.objects.all().aggregate(balance = Sum('amount'))['balance'] or 0,
+              'income' : Transaction.objects.filter(amount__gte = 0).aggregate(income = Sum('amount'))['income'] or 0,
+              'expense' : Transaction.objects.filter(amount__lte = 0).aggregate(expense= Sum('amount'))['expense'] or 0,
+            }
+
+
+    return render(request, 'index.html',context)
 
 
 
@@ -49,17 +57,9 @@ def Transaction_page(request):
             amount = amount,
         )
         
-
         return redirect('/')
   
-
-    context ={'transactions' : Transaction.objects.all().order_by('-uuid'),
-              'balance' : Transaction.objects.all().aggregate(balance = Sum('amount'))['balance'] or 0,
-              'income' : Transaction.objects.filter(amount__gte = 0).aggregate(income = Sum('amount'))['income'] or 0,
-              'expense' : Transaction.objects.filter(amount__lte = 0).aggregate(expense= Sum('amount'))['expense'] or 0,
-            }
-    
-    return render(request, 'transaction.html',context)
+    return render(request, 'transaction.html')
 
 
 
