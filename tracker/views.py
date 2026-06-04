@@ -7,7 +7,7 @@ from django.db.models import Sum
 
 def index(request):
 
-    context ={'transactions' : Transaction.objects.all().order_by('-uuid'),
+    context ={'transactions' : Transaction.objects.all().order_by('-created_at'),
               'balance' : Transaction.objects.all().aggregate(balance = Sum('amount'))['balance'] or 0,
               'income' : Transaction.objects.filter(amount__gte = 0).aggregate(income = Sum('amount'))['income'] or 0,
               'expense' : Transaction.objects.filter(amount__lte = 0).aggregate(expense= Sum('amount'))['expense'] or 0,
@@ -63,7 +63,7 @@ def Transaction_page(request):
 
 
 
-def deleteTransaction(request,uuid):
-    Transaction.objects.get(uuid = uuid).delete()
+def deleteTransaction(request,transaction_id):
+    Transaction.objects.get(transaction_id = transaction_id).delete()
     return redirect('/')
 

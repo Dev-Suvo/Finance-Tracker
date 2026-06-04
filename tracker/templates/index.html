@@ -2,6 +2,18 @@
 
 {% block start %}
 
+<div class="nav-links">
+
+    <a href="{% url 'login' %}" class="nav-btn">
+        Login
+    </a>
+
+    <a href="{% url 'transacion' %}" class="nav-btn">
+        Add Transaction
+    </a>
+
+</div>
+
 <div class="container">
 
     <h4>YOUR BALANCE</h4>
@@ -34,7 +46,7 @@
             <div>
                 <span>${{ transaction.amount }}</span>
 
-                <a href="{% url 'deleteTransaction' transaction.uuid %}" class="delete-btn">
+                <a href="{% url 'deleteTransaction' transaction.transaction_id %}" class="delete-btn">
                     x
                 </a>
             </div>
