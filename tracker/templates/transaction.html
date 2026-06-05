@@ -4,65 +4,65 @@
 
 <div class="transaction-container">
 
-```
-<div class="transaction-card">
+    <div class="transaction-card">
 
-    <h1>Add Transaction</h1>
+        <h1>Add Transaction</h1>
 
-    <form method="POST">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
 
-        {% csrf_token %}
+        <form method="POST">
 
-        <div class="form-control">
+            {% csrf_token %}
 
-            <label>Description</label>
+            <div class="form-control">
 
-            <input
-                type="text"
-                name="description"
-                placeholder="Enter description..."
-                required
-            >
+                <label>Description</label>
 
-        </div>
+                <input
+                    type="text"
+                    name="description"
+                    placeholder="Enter description..."
+                    required
+                >
 
-        <div class="form-control">
+            </div>
 
-            <label>Amount</label>
+            <div class="form-control">
 
-            <small>
-                (-100 = expense, 100 = income)
-            </small>
+                <label>Amount</label>
 
-            <input
-                type="number"
-                name="amount"
-                placeholder="Enter amount..."
-                step="0.01"
-                required
-            >
+                <small>
+                    (-100 = expense, 100 = income)
+                </small>
 
-        </div>
+                <input
+                    type="number"
+                    name="amount"
+                    placeholder="Enter amount..."
+                    step="0.01"
+                    required
+                >
 
-        <button class="btn">
-            Add Transaction
-        </button>
+            </div>
 
-    </form>
+            <button class="btn">
+                Add Transaction
+            </button>
+
+        </form>
+
+        <a href="{% url 'index' %}" class="back-btn">
+            ← Back to Dashboard
+        </a>
+
+    </div>
 
 </div>
-<a href="{% url 'index' %}" class="back-btn">← Back to Dashboard</a>
-
-</div>
-
-{% if messages %}
-
-<script>
-{% for message in messages %}
-alert("{{ message }}")
-{% endfor %}
-</script>
-
-{% endif %}
 
 {% endblock %}

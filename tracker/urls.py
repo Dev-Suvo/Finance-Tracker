@@ -3,10 +3,10 @@ from tracker.views import *
 
 urlpatterns = [
     path('', index, name='index'),
-    path('login/', login, name='login'),
-    path('register/', register, name='register'),
+    path('login/', login_page, name='login'),
+    path('register/', register_page, name='register'),
     path('wallet/', wallet, name='wallet'),
-    path('transaction/', Transaction_page, name='transacion'),
+    path('transaction/', Transaction_page, name='transaction'),
     path('delete-transaction/<transaction_id>',deleteTransaction, name='deleteTransaction'),
 
 ]

@@ -2,12 +2,14 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from tracker.models import *
 from django.db.models import Sum
+from django.contrib.auth.models import User
+from django.db.models import Q
 
 
 
 def index(request):
 
-    context ={'transactions' : Transaction.objects.all().order_by('-created_at'),
+    context ={'transactions' : Transaction.objects.all().order_by('-created_at','-creation_time'),
               'balance' : Transaction.objects.all().aggregate(balance = Sum('amount'))['balance'] or 0,
               'income' : Transaction.objects.filter(amount__gte = 0).aggregate(income = Sum('amount'))['income'] or 0,
               'expense' : Transaction.objects.filter(amount__lte = 0).aggregate(expense= Sum('amount'))['expense'] or 0,
@@ -18,11 +20,45 @@ def index(request):
 
 
 
-def login(request):
+def login_page(request):
     return render(request, 'login.html')
 
 
-def register(request):
+def register_page(request):
+
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        #phone = request.POST.get('phone')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        user_obj = User.objects.filter(Q(email = email) | Q(username = username))
+
+        if user_obj.exists():
+            messages.error(request, 'Error : Username or Email already exists')
+            return redirect('register')
+        
+        if password != confirm_password:
+            messages.error(request, "Error: Password and Confirm Password do not match")
+            return redirect('register')
+        
+        user_obj = User.objects.create(
+            first_name = first_name,
+            last_name = last_name,
+            username = username,
+            email = email,
+            #phone = phone
+        )
+
+        user_obj.set_password(password)
+        user_obj.save()
+        messages.success(request, "Sucess: Account Created")
+        return redirect('register')
+
+
     return render(request, 'register.html')
 
 
@@ -38,26 +74,27 @@ def Transaction_page(request):
         description = description.strip()
         
         if not description:
-            messages.info(request, "Description cannot be blank!!")
+            messages.error(request, "Description cannot be blank!!")
             return redirect('/')
         
         if not amount:
-            messages.info(request, "Amount is required!!")
+            messages.error(request, "Amount is required!!")
             return redirect('/')
         
 
         try:
             amount = float(amount)
         except ValueError:
-            messages.info(request, "Please enter a valid number!!")
+            messages.error(request, "Please enter a valid number!!")
             return redirect('/')
         
         Transaction.objects.create(
             description = description,
             amount = amount,
         )
-        
-        return redirect('/')
+        messages.success(request, "Transaction added successfully")
+        return redirect('transaction')
+
   
     return render(request, 'transaction.html')
 
