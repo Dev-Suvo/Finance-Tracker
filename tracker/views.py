@@ -4,6 +4,7 @@ from tracker.models import *
 from django.db.models import Sum
 from django.contrib.auth.models import User
 from django.db.models import Q
+from django.contrib.auth import authenticate, login, logout
 
 
 
@@ -21,7 +22,26 @@ def index(request):
 
 
 def login_page(request):
-    return render(request, 'login.html')
+        if request.method == 'POST':
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+
+            user_obj = User.objects.filter(username = username)
+
+            if not user_obj.exists():
+                messages.error(request, 'Error : Username does not exists')
+                return redirect('login')
+        
+            user_obj = authenticate(username = username, password = password)
+
+            if not user_obj:
+                messages.error(request, 'Error : Invalid Credentials')
+                return redirect('login')
+        
+            login(request, user_obj)
+            return redirect('/')
+        
+        return render(request, 'login.html')
 
 
 def register_page(request):
