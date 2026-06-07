@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Home | FinanceTracker
+{% endblock %}
+
+{% block content %}
+
+<div class="layout">
+
+    <div class="sidebar">
+
+        <div>
+
+            <div class="sidebar-logo">
+                FinanceTracker
+            </div>
+
+            <div class="sidebar-menu">
+
+                <a class="active">
+                    <i class="fa-solid fa-house"></i>
+                    Home
+                </a>
+
+                <a href="{% url 'create_wallet' %}">
+                    <i class="fa-solid fa-wallet"></i>
+                    Create Wallet
+                </a>
+
+                <a href="{% url 'select_wallet' %}">
+                    <i class="fa-solid fa-list"></i>
+                    Select Wallet
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="sidebar-menu">
+
+            <a href="{% url 'logout' %}">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Logout
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <div class="main-content">
+
+        <h1>
+            Welcome, {{ request.user.first_name }}
+        </h1>
+
+        <p
+            style="
+            margin-top:10px;
+            color:#6b7280;
+            "
+        >
+            Manage your wallets and transactions.
+        </p>
+
+
+        <div
+            class="stats-grid"
+            style="margin-top:30px;"
+        >
+
+            <div class="stats-card">
+
+                <h4>
+                    Total Wallets
+                </h4>
+
+                <h2>
+                    {{ wallets.count }}
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div
+            style="
+            margin-top:40px;
+            display:flex;
+            gap:15px;
+            flex-wrap:wrap;
+            "
+        >
+
+            <a
+                href="{% url 'create_wallet' %}"
+                class="btn btn-primary"
+            >
+                Create Wallet
+            </a>
+
+            <a
+                href="{% url 'select_wallet' %}"
+                class="btn btn-outline"
+            >
+                Select Wallet
+            </a>
+
+        </div>
+
+
+        {% if wallets %}
+
+        <h2
+            style="
+            margin-top:50px;
+            margin-bottom:20px;
+            "
+        >
+            Your Wallets
+        </h2>
+
+        <div class="wallet-grid">
+
+            {% for wallet in wallets %}
+
+            <div class="wallet-card">
+
+                <h3>
+                    {{ wallet.wallet_name }}
+                </h3>
+
+                <div class="wallet-balance">
+                    ₹ {{ wallet.balance }}
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,59 +1,128 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block start %}
+{% block title %}
+Login | FinanceTracker
+{% endblock %}
 
+{% block content %}
 
-    <div class="login-container">
+<div class="auth-container">
 
-        <h2>Finance Manager</h2>
+    <div class="auth-sidebar">
 
-        {% if messages %}
-        {% for message in messages %}
-            <div class="message {{ message.tags }}">
-                {{ message }}
-            </div>
-        {% endfor %}
-        {% endif %}
+        <div>
 
+            <h2 class="logo">
+                FinanceTracker
+            </h2>
 
-        <form method="POST">
+            <div style="margin-top:50px;">
 
-            {% csrf_token %}
+                <div class="auth-menu">
 
-            <div class="form-group">
-                <label>Username</label>
+                    <a class="active">
+                        Login
+                    </a>
 
-                <input
-                    type="text"
-                    name="username"
-                    placeholder="Enter username"
-                    required
-                >
-            </div>
+                    <a href="{% url 'register' %}">
+                        Register
+                    </a>
 
-            <div class="form-group">
-                <label>Password</label>
+                </div>
 
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Enter password"
-                    required
-                >
             </div>
 
-            <button type="submit" class="btn">
-                Login
-            </button>
+        </div>
 
-        </form>
-
-        <p class="register-text">
-            Don't have an account?
-            <a href="{% url 'register' %}">Register</a>
+        <p style="color:#94a3b8;">
+            Secure Financial Management
         </p>
 
     </div>
 
+
+    <div class="auth-content">
+
+        <div class="auth-card">
+
+            <h1>
+                Welcome Back
+            </h1>
+
+            <p style="color:#6b7280;margin-top:10px;">
+                Login to manage your wallets and transactions.
+            </p>
+
+            <form method="POST" style="margin-top:30px;">
+
+                {% csrf_token %}
+
+                <div class="form-group">
+
+                    <label>
+                        Username
+                    </label>
+
+                    <input
+                        type="text"
+                        name="username"
+                        class="form-control"
+                        placeholder="Enter username"
+                        required
+                    >
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        name="password"
+                        class="form-control"
+                        placeholder="Enter password"
+                        required
+                    >
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                    style="width:100%;"
+                >
+                    Login
+                </button>
+
+            </form>
+
+            <p
+                style="
+                text-align:center;
+                margin-top:20px;
+                "
+            >
+                Don't have an account?
+
+                <a
+                    href="{% url 'register' %}"
+                    style="
+                    color:#7c3aed;
+                    font-weight:600;
+                    "
+                >
+                    Register
+                </a>
+
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
 
 {% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}
+FinanceTracker
+{% endblock %}
+
+{% block content %}
+
+<div class="auth-container">
+
+    <div class="auth-sidebar">
+
+        <div>
+            <h2 class="logo">
+                FinanceTracker
+            </h2>
+
+            <div style="margin-top:40px;">
+                <h3>Manage Money Smarter</h3>
+
+                <p style="margin-top:15px;color:#cbd5e1;">
+                    Track income, expenses and wallets
+                    in one place.
+                </p>
+            </div>
+        </div>
+
+        <div>
+            <p style="color:#94a3b8;">
+                Financial Management System
+            </p>
+        </div>
+
+    </div>
+
+    <div class="auth-content">
+
+        <div class="auth-card">
+
+            <h1 style="font-size:42px;">
+                Take Control of Your Finances
+            </h1>
+
+            <p style="margin-top:15px;color:#6b7280;">
+                Create wallets, record transactions,
+                monitor spending and track income
+                with a clean dashboard.
+            </p>
+
+            <div style="margin-top:35px;">
+
+                <a href="{% url 'login' %}"
+                   class="btn btn-primary">
+                    Login
+                </a>
+
+                <a href="{% url 'register' %}"
+                   class="btn btn-outline"
+                   style="margin-left:10px;">
+                    Register
+                </a>
+
+            </div>
+
+            <div class="stats-grid"
+                 style="margin-top:50px;">
+
+                <div class="stats-card">
+                    <h4>Wallet Management</h4>
+                    <h2>Easy</h2>
+                </div>
+
+                <div class="stats-card">
+                    <h4>Transaction Tracking</h4>
+                    <h2>Fast</h2>
+                </div>
+
+                <div class="stats-card">
+                    <h4>Reports</h4>
+                    <h2>Smart</h2>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

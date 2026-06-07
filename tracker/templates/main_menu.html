@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Main Menu | FinanceTracker
+{% endblock %}
+
+{% block content %}
+
+<div class="layout">
+
+    <div class="sidebar">
+
+        <div>
+
+            <div class="sidebar-logo">
+                FinanceTracker
+            </div>
+
+            <div class="sidebar-menu">
+
+                <a href="{% url 'home' %}">
+                    <i class="fa-solid fa-house"></i>
+                    Home
+                </a>
+
+                <a href="{% url 'create_wallet' %}">
+                    <i class="fa-solid fa-wallet"></i>
+                    Create Wallet
+                </a>
+
+                <a href="{% url 'select_wallet' %}">
+                    <i class="fa-solid fa-list"></i>
+                    Select Wallet
+                </a>
+
+                <a class="active">
+                    <i class="fa-solid fa-grid-2"></i>
+                    Main Menu
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="sidebar-menu">
+
+            <a href="{% url 'logout' %}">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Logout
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <div class="main-content">
+
+        <h1>
+            {{ wallet.wallet_name }}
+        </h1>
+
+        <p
+            style="
+            color:#6b7280;
+            margin-top:10px;
+            "
+        >
+            Wallet Balance
+        </p>
+
+        <h2
+            style="
+            margin-top:10px;
+            color:#10b981;
+            "
+        >
+            ₹ {{ wallet.balance }}
+        </h2>
+
+
+        <div
+            class="wallet-grid"
+            style="margin-top:40px;"
+        >
+
+            <a
+                href="{% url 'dashboard' %}"
+                style="color:inherit;"
+            >
+                <div class="wallet-card">
+
+                    <h3>
+                        <i class="fa-solid fa-chart-line"></i>
+                        Dashboard
+                    </h3>
+
+                    <p
+                        style="
+                        margin-top:10px;
+                        color:#6b7280;
+                        "
+                    >
+                        View balance, income,
+                        expense and transactions.
+                    </p>
+
+                </div>
+            </a>
+
+
+            <a
+                href="{% url 'create_transaction' %}"
+                style="color:inherit;"
+            >
+                <div class="wallet-card">
+
+                    <h3>
+                        <i class="fa-solid fa-money-bill-transfer"></i>
+                        Create Transaction
+                    </h3>
+
+                    <p
+                        style="
+                        margin-top:10px;
+                        color:#6b7280;
+                        "
+                    >
+                        Add income or expense
+                        to the selected wallet.
+                    </p>
+
+                </div>
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,18 +1,51 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Tracker</title>
-    {% include "style.html" %}
+
+    <title>
+        {% block title %}
+            FinanceTracker
+        {% endblock %}
+    </title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
 </head>
+
 <body>
 
+    <!-- Messages -->
+    {% if messages %}
+        <div class="message-container">
+            {% for message in messages %}
+                <div class="alert {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
-    {% block start %}
-
+    <!-- Main Content -->
+    {% block content %}
     {% endblock %}
-    
+
+    <!-- JavaScript -->
+    <script src="{% static 'app.js' %}"></script>
+
+    {% block script %}
+    {% endblock %}
 
 </body>
 </html>

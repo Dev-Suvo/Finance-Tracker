@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Dashboard | FinanceTracker
+{% endblock %}
+
+{% block content %}
+
+<div class="layout">
+
+    <div class="sidebar">
+
+        <div>
+
+            <div class="sidebar-logo">
+                FinanceTracker
+            </div>
+
+            <div class="sidebar-menu">
+
+                <a href="{% url 'home' %}">
+                    <i class="fa-solid fa-house"></i>
+                    Home
+                </a>
+
+                <a href="{% url 'create_wallet' %}">
+                    <i class="fa-solid fa-wallet"></i>
+                    Create Wallet
+                </a>
+
+                <a href="{% url 'select_wallet' %}">
+                    <i class="fa-solid fa-list"></i>
+                    Select Wallet
+                </a>
+
+                <a href="{% url 'main_menu' %}">
+                    <i class="fa-solid fa-grid-2"></i>
+                    Main Menu
+                </a>
+
+                <a class="active">
+                    <i class="fa-solid fa-chart-line"></i>
+                    Dashboard
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="sidebar-menu">
+
+            <a href="{% url 'logout' %}">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Logout
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <div class="main-content">
+
+        <h1>
+            Dashboard
+        </h1>
+
+        <p
+            style="
+            margin-top:10px;
+            color:#6b7280;
+            "
+        >
+            Wallet :
+            <strong>
+                {{ wallet.wallet_name }}
+            </strong>
+        </p>
+
+
+        <!-- Summary Cards -->
+
+        <div
+            class="stats-grid"
+            style="margin-top:30px;"
+        >
+
+            <div class="stats-card">
+
+                <h4>
+                    Current Balance
+                </h4>
+
+                <h2>
+                    ₹ {{ balance }}
+                </h2>
+
+            </div>
+
+
+            <div class="stats-card">
+
+                <h4>
+                    Total Income
+                </h4>
+
+                <h2 style="color:#10b981;">
+                    ₹ {{ income }}
+                </h2>
+
+            </div>
+
+
+            <div class="stats-card">
+
+                <h4>
+                    Total Expense
+                </h4>
+
+                <h2 style="color:#ef4444;">
+                    ₹ {{ expense }}
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <!-- Transaction Section -->
+
+        <div
+            class="card"
+            style="margin-top:40px;"
+        >
+
+            <div
+                style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                margin-bottom:20px;
+                "
+            >
+
+                <h2>
+                    Transactions
+                </h2>
+
+                <a
+                    href="{% url 'create_transaction' %}"
+                    class="btn btn-primary"
+                >
+                    Add Transaction
+                </a>
+
+            </div>
+
+
+            {% if transactions %}
+
+            <table class="table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Type
+                        </th>
+
+                        <th>
+                            Description
+                        </th>
+
+                        <th>
+                            Amount
+                        </th>
+
+                        <th>
+                            Date
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for transaction in transactions %}
+
+                    <tr>
+
+                        <td>
+
+                            {% if transaction.transaction_type == 'Income' %}
+
+                                <span
+                                    style="
+                                    color:#10b981;
+                                    font-weight:600;
+                                    "
+                                >
+                                    Income
+                                </span>
+
+                            {% else %}
+
+                                <span
+                                    style="
+                                    color:#ef4444;
+                                    font-weight:600;
+                                    "
+                                >
+                                    Expense
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+                            {{ transaction.description }}
+                        </td>
+
+                        <td>
+
+                            {% if transaction.transaction_type == 'Income' %}
+
+                                <span style="color:#10b981;">
+                                    + ₹ {{ transaction.amount }}
+                                </span>
+
+                            {% else %}
+
+                                <span style="color:#ef4444;">
+                                    - ₹ {{ transaction.amount }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+                            {{ transaction.created_at }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+            {% else %}
+
+            <div
+                style="
+                text-align:center;
+                padding:40px;
+                "
+            >
+
+                <h3>
+                    No Transactions Found
+                </h3>
+
+                <p
+                    style="
+                    margin-top:10px;
+                    color:#6b7280;
+                    "
+                >
+                    Add your first transaction.
+                </p>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
