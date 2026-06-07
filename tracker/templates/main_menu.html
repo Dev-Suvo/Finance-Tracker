@@ -1,142 +1,73 @@
 {% extends 'base.html' %}
-
-{% block title %}
-Main Menu | FinanceTracker
-{% endblock %}
+{% block title %}Main Menu | FinanceTracker{% endblock %}
 
 {% block content %}
-
 <div class="layout">
 
     <div class="sidebar">
-
-        <div>
-
+        <div class="sidebar-top">
             <div class="sidebar-logo">
+                <div class="logo-icon"><i class="bi bi-coin"></i></div>
                 FinanceTracker
             </div>
-
             <div class="sidebar-menu">
-
                 <a href="{% url 'home' %}">
-                    <i class="fa-solid fa-house"></i>
-                    Home
+                    <i class="bi bi-house-fill"></i> Home
                 </a>
-
+                <a href="{% url 'create_transaction' %}">
+                    <i class="bi bi-arrow-left-right"></i> Create Transaction
+                </a>
+                <a href="{% url 'dashboard' %}">
+                    <i class="bi bi-graph-up"></i> Dashboard
+                </a>
                 <a href="{% url 'create_wallet' %}">
-                    <i class="fa-solid fa-wallet"></i>
-                    Create Wallet
+                    <i class="bi bi-wallet2"></i> Create Wallet
                 </a>
-
                 <a href="{% url 'select_wallet' %}">
-                    <i class="fa-solid fa-list"></i>
-                    Select Wallet
+                    <i class="bi bi-list-ul"></i> Select Wallet
                 </a>
-
-                <a class="active">
-                    <i class="fa-solid fa-grid-2"></i>
-                    Main Menu
-                </a>
-
             </div>
-
         </div>
-
         <div class="sidebar-menu">
-
             <a href="{% url 'logout' %}">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                Logout
+                <i class="bi bi-box-arrow-right"></i> Logout
             </a>
-
         </div>
-
     </div>
-
 
     <div class="main-content">
 
-        <h1>
-            {{ wallet.wallet_name }}
-        </h1>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+            <div class="page-header-left">
+                <h1 style="font-size:20px;font-weight:700;">Welcome back! 👋</h1>
+                <p style="color:var(--text-muted);font-size:13px;margin-top:3px;">What would you like to do today?</p>
+            </div>
+            <div class="wallet-chip">
+                <i class="bi bi-wallet2"></i>
+                {{ wallet.wallet_name }}
+                <i class="bi bi-chevron-down" style="font-size:11px;color:var(--text-muted);"></i>
+            </div>
+        </div>
 
-        <p
-            style="
-            color:#6b7280;
-            margin-top:10px;
-            "
-        >
-            Wallet Balance
-        </p>
-
-        <h2
-            style="
-            margin-top:10px;
-            color:#10b981;
-            "
-        >
-            ₹ {{ wallet.balance }}
-        </h2>
-
-
-        <div
-            class="wallet-grid"
-            style="margin-top:40px;"
-        >
-
-            <a
-                href="{% url 'dashboard' %}"
-                style="color:inherit;"
-            >
-                <div class="wallet-card">
-
-                    <h3>
-                        <i class="fa-solid fa-chart-line"></i>
-                        Dashboard
-                    </h3>
-
-                    <p
-                        style="
-                        margin-top:10px;
-                        color:#6b7280;
-                        "
-                    >
-                        View balance, income,
-                        expense and transactions.
-                    </p>
-
+        <div class="menu-tiles">
+            <a href="{% url 'create_transaction' %}" class="menu-tile">
+                <div class="menu-tile-left">
+                    <div class="mt-icon"><i class="bi bi-arrow-left-right"></i></div>
+                    <h3>Create Transaction</h3>
+                    <p>Add income or expense to your wallet</p>
                 </div>
+                <i class="fa-solid fa-chevron-right mt-arrow"></i>
             </a>
-
-
-            <a
-                href="{% url 'create_transaction' %}"
-                style="color:inherit;"
-            >
-                <div class="wallet-card">
-
-                    <h3>
-                        <i class="fa-solid fa-money-bill-transfer"></i>
-                        Create Transaction
-                    </h3>
-
-                    <p
-                        style="
-                        margin-top:10px;
-                        color:#6b7280;
-                        "
-                    >
-                        Add income or expense
-                        to the selected wallet.
-                    </p>
-
+            <a href="{% url 'dashboard' %}" class="menu-tile">
+                <div class="menu-tile-left">
+                    <div class="mt-icon"><i class="bi bi-graph-up"></i></div>
+                    <h3>Dashboard</h3>
+                    <p>View summary, transactions and insights</p>
                 </div>
+                <i class="fa-solid fa-chevron-right mt-arrow"></i>
             </a>
-
         </div>
 
     </div>
-
 </div>
-
 {% endblock %}

@@ -1,128 +1,85 @@
 {% extends 'base.html' %}
-
-{% block title %}
-Login | FinanceTracker
-{% endblock %}
+{% block title %}Login | FinanceTracker{% endblock %}
 
 {% block content %}
-
 <div class="auth-container">
 
     <div class="auth-sidebar">
-
         <div>
-
-            <h2 class="logo">
+            <div class="auth-logo">
+                <div class="logo-icon"><i class="bi bi-coin"></i></div>
                 FinanceTracker
-            </h2>
-
-            <div style="margin-top:50px;">
-
-                <div class="auth-menu">
-
-                    <a class="active">
-                        Login
-                    </a>
-
-                    <a href="{% url 'register' %}">
-                        Register
-                    </a>
-
-                </div>
-
             </div>
-
+            <div class="auth-menu" style="margin-top:40px;">
+                <a class="active">
+                    <i class="bi bi-box-arrow-in-right"></i> Log In
+                </a>
+                <a href="{% url 'register' %}">
+                    <i class="bi bi-person-plus-fill"></i> Register
+                </a>
+                <a href="{% url 'landing' %}">
+                    <i class="bi bi-house-fill"></i> Home
+                </a>
+            </div>
         </div>
-
-        <p style="color:#94a3b8;">
-            Secure Financial Management
-        </p>
-
+        <div class="auth-sidebar-footer">Secure Financial Management</div>
     </div>
 
-
     <div class="auth-content">
-
         <div class="auth-card">
 
-            <h1>
-                Welcome Back
-            </h1>
+            <span class="auth-emoji">👋</span>
+            <h1>Welcome back</h1>
+            <p class="subtitle">Log in to your FinanceTracker account</p>
 
-            <p style="color:#6b7280;margin-top:10px;">
-                Login to manage your wallets and transactions.
-            </p>
+            <div class="social-btns">
+                <button class="social-btn" type="button">
+                    <i class="bi bi-google g-icon"></i> Continue with Google
+                </button>
+                <button class="social-btn" type="button">
+                    <i class="bi bi-facebook fb-icon"></i> Continue with Facebook
+                </button>
+            </div>
 
-            <form method="POST" style="margin-top:30px;">
+            <div class="divider">or continue with email</div>
 
+            <form method="POST">
                 {% csrf_token %}
 
                 <div class="form-group">
-
-                    <label>
-                        Username
-                    </label>
-
-                    <input
-                        type="text"
-                        name="username"
-                        class="form-control"
-                        placeholder="Enter username"
-                        required
-                    >
-
+                    <label>username</label>
+                    <input type="text" name="username" class="form-control" placeholder="Enter your username" required>
                 </div>
 
                 <div class="form-group">
-
-                    <label>
-                        Password
-                    </label>
-
-                    <input
-                        type="password"
-                        name="password"
-                        class="form-control"
-                        placeholder="Enter password"
-                        required
-                    >
-
+                    <label>Password</label>
+                    <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
                 </div>
 
-                <button
-                    type="submit"
-                    class="btn btn-primary"
-                    style="width:100%;"
-                >
-                    Login
-                </button>
+                <div class="remember-row">
+                    <label>
+                        <input type="checkbox" style="accent-color:var(--purple);"> Remember me
+                    </label>
+                    <a href="#">Forgot password?</a>
+                </div>
 
+                <button type="submit" class="btn btn-primary" style="width:100%;padding:14px;">
+                    Log In to My Account
+                </button>
             </form>
 
-            <p
-                style="
-                text-align:center;
-                margin-top:20px;
-                "
-            >
-                Don't have an account?
-
-                <a
-                    href="{% url 'register' %}"
-                    style="
-                    color:#7c3aed;
-                    font-weight:600;
-                    "
-                >
-                    Register
-                </a>
-
+            <p class="account-link" style="margin-top:16px;">
+                Don't have an account? <a href="{% url 'register' %}">Create one free →</a>
             </p>
 
-        </div>
+            <div class="security-badges">
+                <div class="sec-badge"><i class="bi bi-lock-fill"></i> SSL Secured</div>
+                <div class="sec-badge"><i class="bi bi-shield-half"></i> Data Private</div>
+                <div class="sec-badge"><i class="bi bi-check-circle-fill"></i> Trusted</div>
+            </div>
 
+        </div>
     </div>
 
 </div>
-
 {% endblock %}

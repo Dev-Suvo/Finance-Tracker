@@ -1,167 +1,96 @@
 {% extends 'base.html' %}
-
-{% block title %}
-Register | FinanceTracker
-{% endblock %}
+{% block title %}Register | FinanceTracker{% endblock %}
 
 {% block content %}
-
 <div class="auth-container">
 
     <div class="auth-sidebar">
-
         <div>
-
-            <h2 class="logo">
+            <div class="auth-logo">
+                <div class="logo-icon"><i class="bi bi-coin"></i></div>
                 FinanceTracker
-            </h2>
-
-            <div style="margin-top:50px;">
-
-                <div class="auth-menu">
-
-                    <a href="{% url 'login' %}">
-                        Login
-                    </a>
-
-                    <a class="active">
-                        Register
-                    </a>
-
-                </div>
-
             </div>
-
+            <div class="auth-menu" style="margin-top:40px;">
+                <a href="{% url 'login' %}">
+                    <i class="bi bi-box-arrow-in-right"></i> Log In
+                </a>
+                <a class="active">
+                    <i class="bi bi-person-plus-fill"></i> Register
+                </a>
+                <a href="{% url 'landing' %}">
+                    <i class="bi bi-house-fill"></i> Home
+                </a>
+            </div>
         </div>
-
-        <p style="color:#94a3b8;">
-            Create Your Finance Account
-        </p>
-
+        <div class="auth-sidebar-footer">Create Your Finance Account</div>
     </div>
 
     <div class="auth-content">
-
         <div class="auth-card">
 
-            <h1>
-                Create Account
-            </h1>
+            <span class="auth-emoji">✨</span>
+            <h1>Create your account</h1>
+            <p class="subtitle">Fill in your details to get started with FinanceTracker</p>
 
-            <p style="color:#6b7280;margin-top:10px;">
-                Start managing your wallets and transactions today.
-            </p>
-
-            <form method="POST" style="margin-top:30px;">
-
+            <form method="POST" style="margin-top:24px;">
                 {% csrf_token %}
 
-                <div class="form-group">
-                    <label>First Name</label>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" name="first_name" class="form-control" placeholder="Enter first name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" name="last_name" class="form-control" placeholder="Enter last name" required>
+                    </div>
+                </div>
 
-                    <input
-                        type="text"
-                        name="first_name"
-                        class="form-control"
-                        placeholder="Enter first name"
-                        required
-                    >
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" name="username" class="form-control" placeholder="Enter username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="Enter email" required>
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Last Name</label>
-
-                    <input
-                        type="text"
-                        name="last_name"
-                        class="form-control"
-                        placeholder="Enter last name"
-                        required
-                    >
+                    <label>Phone Number</label>
+                    <input type="text" name="phone_number" class="form-control" placeholder="Enter phone number">
                 </div>
 
-                <div class="form-group">
-                    <label>Username</label>
-
-                    <input
-                        type="text"
-                        name="username"
-                        class="form-control"
-                        placeholder="Enter username"
-                        required
-                    >
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="Create password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" name="confirm_password" class="form-control" placeholder="Confirm password" required>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Email</label>
-
-                    <input
-                        type="email"
-                        name="email"
-                        class="form-control"
-                        placeholder="Enter email"
-                        required
-                    >
+                <div class="checkbox-group">
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms">
+                        I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                    </label>
                 </div>
 
-                <div class="form-group">
-                    <label>Password</label>
-
-                    <input
-                        type="password"
-                        name="password"
-                        class="form-control"
-                        placeholder="Enter password"
-                        required
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label>Confirm Password</label>
-
-                    <input
-                        type="password"
-                        name="confirm_password"
-                        class="form-control"
-                        placeholder="Confirm password"
-                        required
-                    >
-                </div>
-
-                <button
-                    type="submit"
-                    class="btn btn-primary"
-                    style="width:100%;"
-                >
-                    Register
+                <button type="submit" class="btn btn-primary" style="width:100%;padding:14px;">
+                    Create My Account
                 </button>
-
             </form>
 
-            <p
-                style="
-                text-align:center;
-                margin-top:20px;
-                "
-            >
-                Already have an account?
-
-                <a
-                    href="{% url 'login' %}"
-                    style="
-                    color:#7c3aed;
-                    font-weight:600;
-                    "
-                >
-                    Login
-                </a>
-
+            <p class="account-link">
+                Already have an account? <a href="{% url 'login' %}">Log in here →</a>
             </p>
 
         </div>
-
     </div>
 
 </div>
-
 {% endblock %}

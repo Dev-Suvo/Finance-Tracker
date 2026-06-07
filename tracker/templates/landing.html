@@ -1,91 +1,104 @@
 {% extends 'base.html' %}
-
-{% block title %}
-FinanceTracker
-{% endblock %}
+{% block title %}FinanceTracker{% endblock %}
 
 {% block content %}
+<div class="landing-page">
 
-<div class="auth-container">
+    <nav class="landing-nav">
+        <div class="nav-logo">
+            <div class="logo-icon"><i class="bi bi-coin"></i></div>
+            FinanceTracker
+        </div>
+        <div class="nav-links">
+            <a href="#">Features</a>
+            <a href="#">How It Works</a>
+            <a href="#">Pricing</a>
+            <a href="#">About</a>
+        </div>
+        <div class="nav-actions">
+            <a href="{% url 'login' %}" class="btn btn-outline btn-sm">Log In</a>
+            <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Get Started</a>
+        </div>
+    </nav>
 
-    <div class="auth-sidebar">
+    <div class="landing-hero">
 
-        <div>
-            <h2 class="logo">
-                FinanceTracker
-            </h2>
+        <div class="hero-left">
+            <div class="hero-badge">
+                <i class="bi bi-shield-check"></i>
+                Smart · Simple · Secure
+            </div>
+            <h1>Track Your Money.<br><span>Build Your Future.</span></h1>
+            <p>A simple and powerful finance tracker to help you manage your income, expenses and savings — all in one place.</p>
 
-            <div style="margin-top:40px;">
-                <h3>Manage Money Smarter</h3>
+            <div class="feature-chips">
+                <div class="chip"><i class="bi bi-arrow-left-right"></i> Track Transactions</div>
+                <div class="chip"><i class="bi bi-graph-up"></i> View Insights</div>
+                <div class="chip"><i class="bi bi-bullseye"></i> Achieve Goals</div>
+                <div class="chip"><i class="bi bi-lock-fill"></i> Secure Data</div>
+            </div>
 
-                <p style="margin-top:15px;color:#cbd5e1;">
-                    Track income, expenses and wallets
-                    in one place.
-                </p>
+            <div class="hero-actions">
+                <a href="{% url 'register' %}" class="btn btn-primary">Get Started Free →</a>
+                <a href="{% url 'login' %}" class="btn btn-outline">Log In</a>
+            </div>
+
+            <div class="hero-social-proof">
+                <div class="avatars">
+                    <span>A</span><span>B</span><span>C</span><span>D</span>
+                </div>
+                <span><strong>58,000+</strong> users already tracking their finances</span>
             </div>
         </div>
 
-        <div>
-            <p style="color:#94a3b8;">
-                Financial Management System
-            </p>
+        <div class="hero-right">
+            <div class="dashboard-mockup">
+                <div class="mockup-header">
+                    <span class="m-label">Total Balance</span>
+                </div>
+                <div class="mockup-balance">₹12,850.00</div>
+                <div class="mockup-stats">
+                    <div class="mockup-stat">
+                        <div class="ms-label">↑ Income</div>
+                        <div class="ms-val green">₹5,950</div>
+                    </div>
+                    <div class="mockup-stat">
+                        <div class="ms-label">↓ Expense</div>
+                        <div class="ms-val red">₹3,720</div>
+                    </div>
+                </div>
+                <div class="mockup-bars">
+                    <div class="bar" style="height:40%;background:#7c3aed;"></div>
+                    <div class="bar" style="height:70%;background:#10b981;"></div>
+                    <div class="bar" style="height:55%;background:#7c3aed;"></div>
+                    <div class="bar" style="height:80%;background:#10b981;"></div>
+                    <div class="bar" style="height:50%;background:#7c3aed;"></div>
+                    <div class="bar" style="height:65%;background:#ef4444;"></div>
+                    <div class="bar" style="height:90%;background:#10b981;"></div>
+                </div>
+            </div>
         </div>
 
     </div>
 
-    <div class="auth-content">
-
-        <div class="auth-card">
-
-            <h1 style="font-size:42px;">
-                Take Control of Your Finances
-            </h1>
-
-            <p style="margin-top:15px;color:#6b7280;">
-                Create wallets, record transactions,
-                monitor spending and track income
-                with a clean dashboard.
-            </p>
-
-            <div style="margin-top:35px;">
-
-                <a href="{% url 'login' %}"
-                   class="btn btn-primary">
-                    Login
-                </a>
-
-                <a href="{% url 'register' %}"
-                   class="btn btn-outline"
-                   style="margin-left:10px;">
-                    Register
-                </a>
-
-            </div>
-
-            <div class="stats-grid"
-                 style="margin-top:50px;">
-
-                <div class="stats-card">
-                    <h4>Wallet Management</h4>
-                    <h2>Easy</h2>
-                </div>
-
-                <div class="stats-card">
-                    <h4>Transaction Tracking</h4>
-                    <h2>Fast</h2>
-                </div>
-
-                <div class="stats-card">
-                    <h4>Reports</h4>
-                    <h2>Smart</h2>
-                </div>
-
-            </div>
-
+    <div class="landing-stats">
+        <div class="l-stat">
+            <div class="l-stat-val">50K+</div>
+            <div class="l-stat-label">Active Users</div>
         </div>
-
+        <div class="l-stat">
+            <div class="l-stat-val">₹2B+</div>
+            <div class="l-stat-label">Tracked Transactions</div>
+        </div>
+        <div class="l-stat">
+            <div class="l-stat-val">99%</div>
+            <div class="l-stat-label">Uptime Guaranteed</div>
+        </div>
+        <div class="l-stat">
+            <div class="l-stat-val">4.9 ★</div>
+            <div class="l-stat-label">Average Rating</div>
+        </div>
     </div>
 
 </div>
-
 {% endblock %}

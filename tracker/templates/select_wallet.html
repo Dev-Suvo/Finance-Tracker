@@ -1,163 +1,75 @@
 {% extends 'base.html' %}
-
-{% block title %}
-Select Wallet | FinanceTracker
-{% endblock %}
+{% block title %}Select Wallet | FinanceTracker{% endblock %}
 
 {% block content %}
-
 <div class="layout">
 
     <div class="sidebar">
-
-        <div>
-
+        <div class="sidebar-top">
             <div class="sidebar-logo">
+                <div class="logo-icon"><i class="bi bi-coin"></i></div>
                 FinanceTracker
             </div>
-
             <div class="sidebar-menu">
-
                 <a href="{% url 'home' %}">
-                    <i class="fa-solid fa-house"></i>
-                    Home
+                    <i class="bi bi-house-fill"></i> Home
                 </a>
-
                 <a href="{% url 'create_wallet' %}">
-                    <i class="fa-solid fa-wallet"></i>
-                    Create Wallet
+                    <i class="bi bi-wallet2"></i> Create Wallet
                 </a>
-
                 <a class="active">
-                    <i class="fa-solid fa-list"></i>
-                    Select Wallet
+                    <i class="bi bi-list-ul"></i> Select Wallet
                 </a>
-
             </div>
-
         </div>
-
         <div class="sidebar-menu">
-
             <a href="{% url 'logout' %}">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                Logout
+                <i class="bi bi-box-arrow-right"></i> Logout
             </a>
-
         </div>
-
     </div>
 
     <div class="main-content">
 
-        <h1>
-            Select Wallet
-        </h1>
-
-        <p
-            style="
-            color:#6b7280;
-            margin-top:10px;
-            "
-        >
-            Choose a wallet to continue.
-        </p>
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1>Select Wallet</h1>
+                <p>Choose a wallet to continue</p>
+            </div>
+        </div>
 
         {% if wallets %}
-
-        <div
-            class="wallet-grid"
-            style="margin-top:30px;"
-        >
-
+        <div class="select-wallet-grid">
             {% for wallet in wallets %}
-
             <form method="POST">
-
                 {% csrf_token %}
-
-                <input
-                    type="hidden"
-                    name="wallet_id"
-                    value="{{ wallet.wallet_id }}"
-                >
-
-                <button
-                    type="submit"
-                    style="
-                    width:100%;
-                    border:none;
-                    background:none;
-                    "
-                >
-
+                <input type="hidden" name="wallet_id" value="{{ wallet.wallet_id }}">
+                <button type="submit" style="width:100%;border:none;background:none;text-align:left;">
                     <div class="wallet-card">
-
-                        <h3>
-                            {{ wallet.wallet_name }}
-                        </h3>
-
-                        <div class="wallet-balance">
-                            ₹ {{ wallet.balance }}
+                        <div class="wallet-card-header">
+                            <div class="wallet-card-icon"><i class="bi bi-wallet2"></i></div>
                         </div>
-
-                        <p
-                            style="
-                            margin-top:15px;
-                            color:#7c3aed;
-                            font-weight:600;
-                            "
-                        >
-                            Select Wallet →
-                        </p>
-
+                        <h3>{{ wallet.wallet_name }}</h3>
+                        <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Active Wallet</p>
+                        <div class="wallet-balance">₹ {{ wallet.balance }}</div>
+                        <div class="wc-arrow">Select →</div>
                     </div>
-
                 </button>
-
             </form>
-
             {% endfor %}
-
         </div>
 
         {% else %}
-
-        <div
-            class="card"
-            style="
-            margin-top:30px;
-            max-width:600px;
-            "
-        >
-
-            <h3>
-                No Wallet Found
-            </h3>
-
-            <p
-                style="
-                color:#6b7280;
-                margin-top:10px;
-                "
-            >
-                Create your first wallet to start tracking finances.
-            </p>
-
-            <a
-                href="{% url 'create_wallet' %}"
-                class="btn btn-primary"
-                style="margin-top:20px;"
-            >
-                Create Wallet
-            </a>
-
+        <div class="card" style="max-width:500px;margin-top:20px;">
+            <div class="empty-state">
+                <div class="empty-icon"><i class="bi bi-wallet2"></i></div>
+                <h3>Oops! Nothing there.</h3>
+                <p>You haven't created any wallet yet.</p>
+                <a href="{% url 'create_wallet' %}" class="btn btn-primary">Create Wallet</a>
+            </div>
         </div>
-
         {% endif %}
 
     </div>
-
 </div>
-
 {% endblock %}

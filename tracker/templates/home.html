@@ -1,151 +1,107 @@
 {% extends 'base.html' %}
-
-{% block title %}
-Home | FinanceTracker
-{% endblock %}
+{% block title %}Home | FinanceTracker{% endblock %}
 
 {% block content %}
-
 <div class="layout">
 
     <div class="sidebar">
-
-        <div>
-
+        <div class="sidebar-top">
             <div class="sidebar-logo">
+                <div class="logo-icon"><i class="bi bi-coin"></i></div>
                 FinanceTracker
             </div>
-
             <div class="sidebar-menu">
-
-                <a class="active">
-                    <i class="fa-solid fa-house"></i>
-                    Home
+                <a href="{% url 'home' %}" class="active">
+                    <i class="bi bi-house-fill"></i> Home
                 </a>
-
                 <a href="{% url 'create_wallet' %}">
-                    <i class="fa-solid fa-wallet"></i>
-                    Create Wallet
+                    <i class="bi bi-wallet2"></i> Create Wallet
                 </a>
-
                 <a href="{% url 'select_wallet' %}">
-                    <i class="fa-solid fa-list"></i>
-                    Select Wallet
+                    <i class="bi bi-list-ul"></i> Select Wallet
                 </a>
-
             </div>
+        </div>
+        <div class="sidebar-menu">
+            <a href="{% url 'logout' %}">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </div>
+    </div>
 
+    <div class="main-content">
+
+        <div class="home-hero">
+            <div class="home-hero-text">
+                <div class="badge">
+                    <i class="bi bi-shield-check"></i> Smart · Simple · Secure
+                </div>
+                <h2>Track Your Money.<br><span>Build Your Future.</span></h2>
+                <p>A simple and powerful finance tracker to help you manage your income, expenses and savings — all in one place.</p>
+                <div class="home-hero-actions">
+                    <a href="{% url 'create_wallet' %}" class="btn btn-primary">Create Wallet</a>
+                    <a href="{% url 'select_wallet' %}" class="btn btn-outline" style="border-color:rgba(255,255,255,.3);color:white;">Select Wallet</a>
+                </div>
+            </div>
+            <div class="home-hero-card">
+                <div class="hc-label">Total Balance</div>
+                <div class="hc-val">₹12,850.00</div>
+                <div class="hc-row">
+                    <div>
+                        <div class="hc-mini-label">↑ Income</div>
+                        <div class="hc-mini-val green">₹5,950</div>
+                    </div>
+                    <div>
+                        <div class="hc-mini-label">↓ Expense</div>
+                        <div class="hc-mini-val red">₹3,720</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="sidebar-menu">
+        <div class="stats-card welcome-card">
 
-            <a href="{% url 'logout' %}">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                Logout
-            </a>
+            <div class="welcome-left">
+              <div class="welcome-avatar">
+              <i class="bi bi-person-fill"></i></div>
+            <div>
+            <div class="welcome-label">
+                Hello!!
+            </div>
 
+            <div class="welcome-name">
+                {{ request.user.first_name }}  {{ request.user.last_name }}
+            </div>
         </div>
 
     </div>
 
+    <div class="wallet-summary">
 
-    <div class="main-content">
-
-        <h1>
-            Welcome, {{ request.user.first_name }}
-        </h1>
-
-        <p
-            style="
-            margin-top:10px;
-            color:#6b7280;
-            "
-        >
-            Manage your wallets and transactions.
-        </p>
-
-
-        <div
-            class="stats-grid"
-            style="margin-top:30px;"
-        >
-
-            <div class="stats-card">
-
-                <h4>
-                    Total Wallets
-                </h4>
-
-                <h2>
-                    {{ wallets.count }}
-                </h2>
-
-            </div>
-
+        <div class="label">
+            Your have {{ wallets.count }} Wallet{{ wallets.count|pluralize }} 
         </div>
-
-
-        <div
-            style="
-            margin-top:40px;
-            display:flex;
-            gap:15px;
-            flex-wrap:wrap;
-            "
-        >
-
-            <a
-                href="{% url 'create_wallet' %}"
-                class="btn btn-primary"
-            >
-                Create Wallet
-            </a>
-
-            <a
-                href="{% url 'select_wallet' %}"
-                class="btn btn-outline"
-            >
-                Select Wallet
-            </a>
-
-        </div>
-
-
-        {% if wallets %}
-
-        <h2
-            style="
-            margin-top:50px;
-            margin-bottom:20px;
-            "
-        >
-            Your Wallets
-        </h2>
-
-        <div class="wallet-grid">
-
-            {% for wallet in wallets %}
-
-            <div class="wallet-card">
-
-                <h3>
-                    {{ wallet.wallet_name }}
-                </h3>
-
-                <div class="wallet-balance">
-                    ₹ {{ wallet.balance }}
-                </div>
-
-            </div>
-
-            {% endfor %}
-
-        </div>
-
-        {% endif %}
 
     </div>
 
 </div>
 
+        {% if wallets %}
+        <h2 style="margin-top:36px;margin-bottom:16px;font-size:17px;font-weight:700;">Your Wallets</h2>
+        <div class="wallet-grid">
+            {% for wallet in wallets %}
+            <div class="wallet-card">
+                <div class="wallet-card-header">
+                    <div class="wallet-card-icon"><i class="bi bi-wallet2"></i></div>
+                    <span class="wallet-card-badge">Active</span>
+                </div>
+                <h3>{{ wallet.wallet_name }}</h3>
+                <div class="wallet-balance">₹ {{ wallet.balance }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </div>
+</div>
 {% endblock %}

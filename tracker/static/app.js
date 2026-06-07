@@ -1,8 +1,6 @@
-/* FinanceTracker – app.js */
-
 document.addEventListener('DOMContentLoaded', function () {
 
-    /* ── Auto-dismiss alerts ── */
+    /* Auto-dismiss alerts */
     setTimeout(function () {
         document.querySelectorAll('.alert').forEach(function (el) {
             el.style.transition = 'opacity .5s';
@@ -11,8 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }, 4000);
 
-
-    /* ── Transaction type toggle buttons ── */
+    /* Transaction type toggle buttons */
     const typeBtns = document.querySelectorAll('.type-btn');
     const typeInput = document.getElementById('transaction_type');
 
@@ -25,11 +22,5 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
-
-
-    /* ── Wallet card cursor pointer for select page ── */
-    document.querySelectorAll('.wallet-card').forEach(function (card) {
-        card.style.cursor = 'pointer';
-    });
 
 });

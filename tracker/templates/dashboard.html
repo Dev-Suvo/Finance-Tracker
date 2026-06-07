@@ -1,287 +1,185 @@
 {% extends 'base.html' %}
-
-{% block title %}
-Dashboard | FinanceTracker
-{% endblock %}
+{% block title %}Dashboard | FinanceTracker{% endblock %}
 
 {% block content %}
-
 <div class="layout">
 
     <div class="sidebar">
-
-        <div>
-
+        <div class="sidebar-top">
             <div class="sidebar-logo">
+                <div class="logo-icon"><i class="bi bi-coin"></i></div>
                 FinanceTracker
             </div>
-
             <div class="sidebar-menu">
-
-                <a href="{% url 'home' %}">
-                    <i class="fa-solid fa-house"></i>
-                    Home
-                </a>
-
-                <a href="{% url 'create_wallet' %}">
-                    <i class="fa-solid fa-wallet"></i>
-                    Create Wallet
-                </a>
-
-                <a href="{% url 'select_wallet' %}">
-                    <i class="fa-solid fa-list"></i>
-                    Select Wallet
-                </a>
-
                 <a href="{% url 'main_menu' %}">
-                    <i class="fa-solid fa-grid-2"></i>
-                    Main Menu
+                    <i class="bi bi-grid-fill"></i> Main Menu
                 </a>
-
+                <a href="{% url 'create_transaction' %}">
+                    <i class="bi bi-arrow-left-right"></i> Create Transaction
+                </a>
                 <a class="active">
-                    <i class="fa-solid fa-chart-line"></i>
-                    Dashboard
+                    <i class="bi bi-graph-up"></i> Dashboard
                 </a>
-
+                <a href="{% url 'create_wallet' %}">
+                    <i class="bi bi-wallet2"></i> Create Wallet
+                </a>
+                <a href="{% url 'select_wallet' %}">
+                    <i class="bi bi-list-ul"></i> Select Wallet
+                </a>
             </div>
-
         </div>
-
         <div class="sidebar-menu">
-
             <a href="{% url 'logout' %}">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                Logout
+                <i class="bi bi-box-arrow-right"></i> Logout
             </a>
-
         </div>
-
     </div>
-
 
     <div class="main-content">
 
-        <h1>
-            Dashboard
-        </h1>
-
-        <p
-            style="
-            margin-top:10px;
-            color:#6b7280;
-            "
-        >
-            Wallet :
-            <strong>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+            <div>
+                <h1 style="font-size:20px;font-weight:700;">Dashboard</h1>
+                <p style="font-size:13px;color:var(--text-muted);margin-top:2px;">Overview of your wallet</p>
+            </div>
+            <div class="wallet-chip">
+                <i class="bi bi-wallet2"></i>
                 {{ wallet.wallet_name }}
-            </strong>
-        </p>
+                <i class="bi bi-chevron-down" style="font-size:11px;color:var(--text-muted);"></i>
+            </div>
+        </div>
 
-
-        <!-- Summary Cards -->
-
-        <div
-            class="stats-grid"
-            style="margin-top:30px;"
-        >
-
+        <div class="stats-grid">
             <div class="stats-card">
+                <div class="sc-icon purple">₹</div>
+                <div class="sc-label">Total Balance</div>
+                <div class="sc-val">₹ {{ balance }}</div>
+            </div>
+            <div class="stats-card">
+                <div class="sc-icon green"><i class="bi bi-graph-up"></i></div>
+                <div class="sc-label">Total Income</div>
+                <div class="sc-val" style="color:var(--green);">
+                <span class="sc-arrow green"></span> ₹ {{ income }}</div>
+            </div>
+            <div class="stats-card">
+                <div class="sc-icon red"><i class="bi bi-graph-down"></i></div>
+                <div class="sc-label">Total Expense</div>
+                <div class="sc-val" style="color:var(--red);">
+                <span class="sc-arrow red"></span> ₹ {{ expense }}</div>
+            </div>
+        </div>
 
-                <h4>
-                    Current Balance
-                </h4>
+        <div class="dashboard-cols">
 
-                <h2>
-                    ₹ {{ balance }}
-                </h2>
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>Recent Transactions</h2>
+                    <a href="{% url 'create_transaction' %}" class="btn btn-primary btn-sm">+ Add Transaction</a>
+                </div>
 
+                {% if transactions %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <div style="
+                                        width:34px;height:34px;border-radius:8px;
+                                        background:{% if transaction.transaction_type == 'Income' %}var(--green-faint){% else %}var(--red-faint){% endif %};
+                                        display:flex;align-items:center;justify-content:center;
+                                        color:{% if transaction.transaction_type == 'Income' %}var(--green){% else %}var(--red){% endif %};
+                                        flex-shrink:0;">
+                                        <i class="bi {% if transaction.transaction_type == 'Income' %}bi-graph-up{% else %}bi-graph-down{% endif %}" style="font-size:15px;"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-size:13px;font-weight:600;">{{ transaction.description }}</div>
+                                        <span class="tx-type-badge {% if transaction.transaction_type == 'Income' %}income{% else %}expense{% endif %}">
+                                            {{ transaction.transaction_type }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="font-weight:700;{% if transaction.transaction_type == 'Income' %}color:var(--green);{% else %}color:var(--red);{% endif %}">
+                                 ₹ {{ transaction.amount }}
+                            </td>
+                            <td style="font-size:12px;color:var(--text-muted);">{{ transaction.created_at|date:"d M Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div style="padding:14px 20px;border-top:1px solid var(--border);">
+                    <a href="#" class="view-all">View All <i class="bi bi-arrow-right"></i></a>
+                </div>
+
+                {% else %}
+                <div class="empty-state" style="padding:50px 20px;">
+                    <div class="empty-icon"><i class="bi bi-receipt"></i></div>
+                    <h3>No Transactions Found</h3>
+                    <p>Add your first transaction to get started.</p>
+                    <a href="{% url 'create_transaction' %}" class="btn btn-primary">Add Transaction</a>
+                </div>
+                {% endif %}
             </div>
 
-
-            <div class="stats-card">
-
-                <h4>
-                    Total Income
-                </h4>
-
-                <h2 style="color:#10b981;">
-                    ₹ {{ income }}
-                </h2>
-
-            </div>
-
-
-            <div class="stats-card">
-
-                <h4>
-                    Total Expense
-                </h4>
-
-                <h2 style="color:#ef4444;">
-                    ₹ {{ expense }}
-                </h2>
-
+            <div class="expense-overview">
+                <h2>Expense Overview</h2>
+                <div class="pie-wrap">
+                    <svg viewBox="0 0 36 36" width="140" height="140">
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f1f5f9" stroke-width="3.5"/>
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7c3aed"
+                            stroke-width="3.5" stroke-dasharray="40 60" stroke-dashoffset="25"
+                            transform="rotate(-90 18 18)"/>
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#10b981"
+                            stroke-width="3.5" stroke-dasharray="20 80" stroke-dashoffset="-15"
+                            transform="rotate(-90 18 18)"/>
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f59e0b"
+                            stroke-width="3.5" stroke-dasharray="15 85" stroke-dashoffset="-35"
+                            transform="rotate(-90 18 18)"/>
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#ef4444"
+                            stroke-width="3.5" stroke-dasharray="10 90" stroke-dashoffset="-50"
+                            transform="rotate(-90 18 18)"/>
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#64748b"
+                            stroke-width="3.5" stroke-dasharray="15 85" stroke-dashoffset="-60"
+                            transform="rotate(-90 18 18)"/>
+                    </svg>
+                    <div class="pie-center-text">
+                        <div class="pct-val">₹{{ expense }}</div>
+                        <div class="pct-label">Total Expenses</div>
+                    </div>
+                </div>
+                <div class="expense-legend">
+                    <div class="legend-row">
+                        <div class="legend-label"><span class="legend-dot" style="background:#7c3aed;"></span>Food</div>
+                        <div class="legend-pct">40%</div>
+                    </div>
+                    <div class="legend-row">
+                        <div class="legend-label"><span class="legend-dot" style="background:#10b981;"></span>Transport</div>
+                        <div class="legend-pct">20%</div>
+                    </div>
+                    <div class="legend-row">
+                        <div class="legend-label"><span class="legend-dot" style="background:#f59e0b;"></span>Shopping</div>
+                        <div class="legend-pct">15%</div>
+                    </div>
+                    <div class="legend-row">
+                        <div class="legend-label"><span class="legend-dot" style="background:#ef4444;"></span>Bills</div>
+                        <div class="legend-pct">10%</div>
+                    </div>
+                    <div class="legend-row">
+                        <div class="legend-label"><span class="legend-dot" style="background:#64748b;"></span>Others</div>
+                        <div class="legend-pct">15%</div>
+                    </div>
+                </div>
             </div>
 
         </div>
-
-
-        <!-- Transaction Section -->
-
-        <div
-            class="card"
-            style="margin-top:40px;"
-        >
-
-            <div
-                style="
-                display:flex;
-                justify-content:space-between;
-                align-items:center;
-                margin-bottom:20px;
-                "
-            >
-
-                <h2>
-                    Transactions
-                </h2>
-
-                <a
-                    href="{% url 'create_transaction' %}"
-                    class="btn btn-primary"
-                >
-                    Add Transaction
-                </a>
-
-            </div>
-
-
-            {% if transactions %}
-
-            <table class="table">
-
-                <thead>
-
-                    <tr>
-
-                        <th>
-                            Type
-                        </th>
-
-                        <th>
-                            Description
-                        </th>
-
-                        <th>
-                            Amount
-                        </th>
-
-                        <th>
-                            Date
-                        </th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    {% for transaction in transactions %}
-
-                    <tr>
-
-                        <td>
-
-                            {% if transaction.transaction_type == 'Income' %}
-
-                                <span
-                                    style="
-                                    color:#10b981;
-                                    font-weight:600;
-                                    "
-                                >
-                                    Income
-                                </span>
-
-                            {% else %}
-
-                                <span
-                                    style="
-                                    color:#ef4444;
-                                    font-weight:600;
-                                    "
-                                >
-                                    Expense
-                                </span>
-
-                            {% endif %}
-
-                        </td>
-
-                        <td>
-                            {{ transaction.description }}
-                        </td>
-
-                        <td>
-
-                            {% if transaction.transaction_type == 'Income' %}
-
-                                <span style="color:#10b981;">
-                                    + ₹ {{ transaction.amount }}
-                                </span>
-
-                            {% else %}
-
-                                <span style="color:#ef4444;">
-                                    - ₹ {{ transaction.amount }}
-                                </span>
-
-                            {% endif %}
-
-                        </td>
-
-                        <td>
-                            {{ transaction.created_at }}
-                        </td>
-
-                    </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-            {% else %}
-
-            <div
-                style="
-                text-align:center;
-                padding:40px;
-                "
-            >
-
-                <h3>
-                    No Transactions Found
-                </h3>
-
-                <p
-                    style="
-                    margin-top:10px;
-                    color:#6b7280;
-                    "
-                >
-                    Add your first transaction.
-                </p>
-
-            </div>
-
-            {% endif %}
-
-        </div>
-
     </div>
-
 </div>
-
 {% endblock %}
