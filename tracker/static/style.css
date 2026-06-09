@@ -863,44 +863,36 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
 .sc-arrow.green { color: var(--green); }
 .sc-arrow.red   { color: var(--red); }
 
-
-.welcome-card{
+.welcome-card {
     background: white;
     border-radius: var(--radius-lg);
     padding: 24px 28px;
-
     box-shadow: var(--shadow-md);
-
     display: flex;
     justify-content: space-between;
     align-items: center;
-
     width: 100%;
 }
 
-.welcome-left{
+.welcome-left {
     display: flex;
     align-items: center;
     gap: 16px;
 }
 
-.welcome-avatar{
+.welcome-avatar {
     width: 60px;
     height: 60px;
-
     border-radius: 50%;
-
     background: var(--purple-faint);
     color: var(--purple);
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     font-size: 22px;
 }
 
-.welcome-label{
+.welcome-label {
     font-size: 12px;
     color: var(--text-muted);
     font-weight: 900;
@@ -909,45 +901,32 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     letter-spacing: .09em;
 }
 
-.welcome-name{
+.welcome-name {
     font-size: 24px;
     font-weight: 700;
     color: var(--text-main);
-
     margin-top: 4px;
 }
 
-.wallet-summary{
-    text-align: right;
-}
+.wallet-summary { text-align: right; }
 
-.wallet-summary .count{
+.wallet-summary .count {
     font-size: 36px;
     font-weight: 700;
     color: var(--purple);
     line-height: 1;
 }
 
-.wallet-summary .label{
+.wallet-summary .label {
     font-size: 18px;
-    color: var(--text-muted);
     margin-top: 4px;
     padding-left: 20px;
-    color:#3e037e;
+    color: #3e037e;
 }
 
-@media(max-width:768px){
-
-    .welcome-card{
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 20px;
-    }
-
-    .wallet-summary{
-        text-align: left;
-    }
-
+@media(max-width:768px) {
+    .welcome-card { flex-direction: column; align-items: flex-start; gap: 20px; }
+    .wallet-summary { text-align: left; }
 }
 
 
@@ -1383,7 +1362,7 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
 
 .table th {
     background: #f8fafc;
-    padding: 12px 20px;
+    padding: 14px 20px;
     text-align: left;
     font-size: 11px;
     font-weight: 700;
@@ -1393,9 +1372,10 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
 }
 
 .table td {
-    padding: 14px 20px;
+    padding: 18px 20px;
     font-size: 14px;
     border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
 }
 
 .table tbody tr:last-child td { border-bottom: none; }
@@ -1412,33 +1392,26 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
 }
 
 .tx-type-badge.income { background: var(--green-faint); color: var(--green); }
-.tx-type-badge.expense { background: var(--red-faint);   color: var(--red); }
-
-.dashboard-cols {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 20px;
-    margin-top: 20px;
-}
+.tx-type-badge.expense { background: var(--red-faint); color: var(--red); }
 
 .expense-overview {
     background: white;
     border-radius: var(--radius-lg);
-    padding: 22px 24px;
+    padding: 28px 32px;
     box-shadow: var(--shadow-md);
 }
 
 .expense-overview h2 {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
-    margin-bottom: 18px;
+    margin-bottom: 24px;
 }
 
 .expense-legend {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-top: 16px;
+    gap: 12px;
+    margin-top: 20px;
 }
 
 .legend-row {
@@ -1452,7 +1425,7 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    margin-right: 8px;
+    margin-right: 10px;
     flex-shrink: 0;
 }
 
@@ -1470,8 +1443,8 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     align-items: center;
     justify-content: center;
     margin: 0 auto;
-    width: 140px;
-    height: 140px;
+    width: 160px;
+    height: 160px;
 }
 
 .pie-center-text {
@@ -1480,7 +1453,7 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
 }
 
 .pie-center-text .pct-val {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--text-main);
 }
@@ -1488,6 +1461,7 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
 .pie-center-text .pct-label {
     font-size: 11px;
     color: var(--text-muted);
+    margin-top: 2px;
 }
 
 .view-all {
@@ -1530,6 +1504,8 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     margin-top: 24px;
 }
 
+/* removed .dashboard-cols — no longer used */
+
 
 /* =========================
    MOBILE
@@ -1537,7 +1513,6 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
 
 @media (max-width: 900px) {
     .stats-grid { grid-template-columns: 1fr 1fr; }
-    .dashboard-cols { grid-template-columns: 1fr; }
     .menu-tiles { grid-template-columns: 1fr; }
 }
 
@@ -1556,6 +1531,3 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     .form-row { grid-template-columns: 1fr; }
     .social-btns { grid-template-columns: 1fr; }
 }
-
-
-

@@ -13,11 +13,9 @@ urlpatterns = [
 
     path('menu/', main_menu_page, name='main_menu'),
 
-    path(
-        'transaction/create/',
-        create_transaction_page,
-        name='create_transaction'
-    ),
+    path('transaction/create/',create_transaction_page,name='create_transaction'),
+    path('update-transaction/<uuid:transaction_id>/',update_transaction,name='update_transaction'),
+    path('delete-transaction/<uuid:transaction_id>/',delete_transaction,name='delete_transaction'),
 
     path('dashboard/', dashboard_page, name='dashboard'),
 

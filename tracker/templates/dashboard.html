@@ -49,6 +49,7 @@
             </a>
         </div>
 
+        <!-- Stats -->
         <div class="stats-grid">
             <div class="stats-card">
                 <div class="sc-icon purple">₹</div>
@@ -59,86 +60,99 @@
                 <div class="sc-icon green"><i class="bi bi-graph-up"></i></div>
                 <div class="sc-label">Total Income</div>
                 <div class="sc-val" style="color:var(--green);">
-                <span class="sc-arrow green"></span> ₹ {{ income }}</div>
+                    <span class="sc-arrow green"></span> ₹ {{ income }}
+                </div>
             </div>
             <div class="stats-card">
                 <div class="sc-icon red"><i class="bi bi-graph-down"></i></div>
                 <div class="sc-label">Total Expense</div>
                 <div class="sc-val" style="color:var(--red);">
-                <span class="sc-arrow red"></span> ₹ {{ expense }}</div>
+                    <span class="sc-arrow red"></span> ₹ {{ expense }}
+                </div>
             </div>
         </div>
 
-        <div class="dashboard-cols">
-
-            <div class="section-card">
-                <div class="section-header">
-                    <h2>Recent Transactions</h2>
-                    <a href="{% url 'create_transaction' %}" class="btn btn-primary btn-sm">+ Add Transaction</a>
-                </div>
-
-                {% if transactions %}
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Description</th>
-                                <th>Amount</th>
-                                <th>Category</th>
-                                <th>Date</th>
-                                <th>Time</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for transaction in transactions %}
-                                <tr>
-                                    <td>
-                                        <div style="display:flex;align-items:center;gap:10px;">
-                                            <div style="width:34px;height:34px;border-radius:8px;background:{% if transaction.transaction_type == 'Income' %}var(--green-faint){% else %}var(--red-faint){% endif %};display:flex;align-items:center;justify-content:center;color:{% if transaction.transaction_type == 'Income' %}var(--green){% else %}var(--red){% endif %};flex-shrink:0;">
-                                                <i class="bi {% if transaction.transaction_type == 'Income' %}bi-graph-up{% else %}bi-graph-down{% endif %}" style="font-size:15px;"></i>
-                                            </div>
-                                        <div>
-                                        <div style="font-size:13px;font-weight:600;">{{ transaction.description }}</div>
-                                        <span class="tx-type-badge {% if transaction.transaction_type == 'Income' %}income{% else %}expense{% endif %}">
-                                            {{ transaction.transaction_type }}
-                                        </span></div>
-                                        </div>
-                                    </td>
-                                    <td style="font-weight:700;{% if transaction.transaction_type == 'Income' %}color:var(--green);{% else %}color:var(--red);{% endif %}">
-                                        ₹ {{ transaction.amount }}
-                                    </td>
-                                    <td>
-                                        <span style="background:#f1f5f9;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;color:var(--text-muted);">
-                                            {{ transaction.category|default:"Others" }}
-                                        </span>
-                                    </td>
-                                    <td style="font-size:12px;color:var(--text-muted);">
-                                        {{ transaction.created_at|date:"d M Y" }}
-                                    </td>
-                                    <td style="font-size:12px;color:var(--text-muted);">
-                                        {{ transaction.creation_time|time:"h:i A" }}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    <div style="padding:14px 20px;border-top:1px solid var(--border);">
-                        <a href="{% url 'all_transactions' %}" class="view-all">View All <i class="bi bi-arrow-right"></i></a>
-                    </div>
-
-                {% else %}
-                <div class="empty-state" style="padding:50px 20px;">
-                    <div class="empty-icon"><i class="bi bi-receipt"></i></div>
-                    <h3>No Transactions Found</h3>
-                    <p>Add your first transaction to get started.</p>
-                    <a href="{% url 'create_transaction' %}" class="btn btn-primary">Add Transaction</a>
-                </div>
-                {% endif %}
+        <!-- Recent Transactions — full width -->
+        <div class="section-card" style="margin-top:20px;">
+            <div class="section-header">
+                <h2>Recent Transactions</h2>
+                <a href="{% url 'create_transaction' %}" class="btn btn-primary btn-sm">+ Add Transaction</a>
             </div>
 
+            {% if transactions %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Category</th>
+                        <th>Created</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <div style="
+                                    width:34px;height:34px;border-radius:8px;
+                                    background:{% if transaction.transaction_type == 'Income' %}var(--green-faint){% else %}var(--red-faint){% endif %};
+                                    display:flex;align-items:center;justify-content:center;
+                                    color:{% if transaction.transaction_type == 'Income' %}var(--green){% else %}var(--red){% endif %};
+                                    flex-shrink:0;">
+                                    <i class="bi {% if transaction.transaction_type == 'Income' %}bi-graph-up{% else %}bi-graph-down{% endif %}" style="font-size:15px;"></i>
+                                </div>
+                                <div>
+                                    <div style="font-size:13px;font-weight:600;">{{ transaction.description }}</div>
+                                    <span class="tx-type-badge {% if transaction.transaction_type == 'Income' %}income{% else %}expense{% endif %}">
+                                        {{ transaction.transaction_type }}
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-weight:700;{% if transaction.transaction_type == 'Income' %}color:var(--green);{% else %}color:var(--red);{% endif %}">
+                             ₹ {{ transaction.amount }}
+                        </td>
+                        <td>
+                            <span style="background:#f1f5f9;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;color:var(--text-muted);">
+                                {{ transaction.category|default:"Others" }}
+                            </span>
+                        </td>
+                        <td style="font-size:12px;">
+                            <div style="font-weight:600;color:var(--text-main);">{{ transaction.created_at|date:"d M Y" }}</div>
+                            <div style="color:#94a3b8;margin-top:2px;">{{ transaction.creation_time|time:"h:i A" }}</div>
+                        </td>
+                        <td style="font-size:12px;">
+                            <div style="font-weight:600;color:var(--text-main);">{{ transaction.updated_at|date:"d M Y" }}</div>
+                            <div style="color:#94a3b8;margin-top:2px;">{{ transaction.updation_time|time:"h:i A" }}</div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div style="padding:14px 20px;border-top:1px solid var(--border);">
+                <a href="{% url 'all_transactions' %}" class="view-all">View All <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            {% else %}
+            <div class="empty-state" style="padding:50px 20px;">
+                <div class="empty-icon"><i class="bi bi-receipt"></i></div>
+                <h3>No Transactions Found</h3>
+                <p>Add your first transaction to get started.</p>
+                <a href="{% url 'create_transaction' %}" class="btn btn-primary">Add Transaction</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Overview Row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;">
+
+            <!-- Expense Overview -->
             <div class="expense-overview">
                 <h2>Expense Overview</h2>
                 <div class="pie-wrap">
-                    <svg viewBox="0 0 36 36" width="140" height="140">
+                    <svg viewBox="0 0 36 36" width="160" height="160">
                         <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f1f5f9" stroke-width="3.5"/>
                         <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7c3aed"
                             stroke-width="3.5" stroke-dasharray="40 60" stroke-dashoffset="25"
@@ -157,7 +171,7 @@
                             transform="rotate(-90 18 18)"/>
                     </svg>
                     <div class="pie-center-text">
-                        <div class="pct-val">₹{{ expense }}</div>
+                        <div class="pct-val" style="color:var(--red);">₹{{ expense }}</div>
                         <div class="pct-label">Total Expenses</div>
                     </div>
                 </div>
@@ -185,7 +199,52 @@
                 </div>
             </div>
 
+            <!-- Income Overview -->
+            <div class="expense-overview">
+                <h2>Income Overview</h2>
+                <div class="pie-wrap">
+                    <svg viewBox="0 0 36 36" width="160" height="160">
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f1f5f9" stroke-width="3.5"/>
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#10b981"
+                            stroke-width="3.5" stroke-dasharray="50 50" stroke-dashoffset="25"
+                            transform="rotate(-90 18 18)"/>
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7c3aed"
+                            stroke-width="3.5" stroke-dasharray="25 75" stroke-dashoffset="-25"
+                            transform="rotate(-90 18 18)"/>
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f59e0b"
+                            stroke-width="3.5" stroke-dasharray="15 85" stroke-dashoffset="-50"
+                            transform="rotate(-90 18 18)"/>
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#3b82f6"
+                            stroke-width="3.5" stroke-dasharray="10 90" stroke-dashoffset="-65"
+                            transform="rotate(-90 18 18)"/>
+                    </svg>
+                    <div class="pie-center-text">
+                        <div class="pct-val" style="color:var(--green);">₹{{ income }}</div>
+                        <div class="pct-label">Total Income</div>
+                    </div>
+                </div>
+                <div class="expense-legend">
+                    <div class="legend-row">
+                        <div class="legend-label"><span class="legend-dot" style="background:#10b981;"></span>Salary</div>
+                        <div class="legend-pct">50%</div>
+                    </div>
+                    <div class="legend-row">
+                        <div class="legend-label"><span class="legend-dot" style="background:#7c3aed;"></span>Freelance</div>
+                        <div class="legend-pct">25%</div>
+                    </div>
+                    <div class="legend-row">
+                        <div class="legend-label"><span class="legend-dot" style="background:#f59e0b;"></span>Business</div>
+                        <div class="legend-pct">15%</div>
+                    </div>
+                    <div class="legend-row">
+                        <div class="legend-label"><span class="legend-dot" style="background:#3b82f6;"></span>Others</div>
+                        <div class="legend-pct">10%</div>
+                    </div>
+                </div>
+            </div>
+
         </div>
+
     </div>
 </div>
 {% endblock %}
