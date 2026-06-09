@@ -42,11 +42,11 @@
                 <h1 style="font-size:20px;font-weight:700;">Welcome back! 👋</h1>
                 <p style="color:var(--text-muted);font-size:13px;margin-top:3px;">What would you like to do today?</p>
             </div>
-            <div class="wallet-chip">
+            <a href="{% url 'select_wallet' %}" class="wallet-chip">
                 <i class="bi bi-wallet2"></i>
                 {{ wallet.wallet_name }}
                 <i class="bi bi-chevron-down" style="font-size:11px;color:var(--text-muted);"></i>
-            </div>
+            </a>
         </div>
 
         <div class="menu-tiles">

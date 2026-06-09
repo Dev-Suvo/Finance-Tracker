@@ -47,6 +47,15 @@ class Transaction(BaseModel):
         ('Expense', 'Expense'),
     )
 
+    CATEGORY_CHOICES = (
+        ('Food', 'Food'),
+        ('Transport', 'Transport'),
+        ('Shopping', 'Shopping'),
+        ('Bills', 'Bills'),
+        ('Subscription', 'Subscription'),
+        ('Other', 'Other'),
+    )
+
     transaction_id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -62,6 +71,12 @@ class Transaction(BaseModel):
     transaction_type = models.CharField(
         max_length=10,
         choices=TYPE_CHOICES
+    )
+
+    category = models.CharField(
+        max_length=20,
+        choices=CATEGORY_CHOICES,
+        default='Other'
     )
 
     description = models.CharField(max_length=200)

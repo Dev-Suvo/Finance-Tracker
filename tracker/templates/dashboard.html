@@ -42,11 +42,11 @@
                 <h1 style="font-size:20px;font-weight:700;">Dashboard</h1>
                 <p style="font-size:13px;color:var(--text-muted);margin-top:2px;">Overview of your wallet</p>
             </div>
-            <div class="wallet-chip">
+            <a href="{% url 'select_wallet' %}" class="wallet-chip">
                 <i class="bi bi-wallet2"></i>
                 {{ wallet.wallet_name }}
                 <i class="bi bi-chevron-down" style="font-size:11px;color:var(--text-muted);"></i>
-            </div>
+            </a>
         </div>
 
         <div class="stats-grid">
@@ -78,46 +78,52 @@
                 </div>
 
                 {% if transactions %}
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Description</th>
-                            <th>Amount</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for transaction in transactions %}
-                        <tr>
-                            <td>
-                                <div style="display:flex;align-items:center;gap:10px;">
-                                    <div style="
-                                        width:34px;height:34px;border-radius:8px;
-                                        background:{% if transaction.transaction_type == 'Income' %}var(--green-faint){% else %}var(--red-faint){% endif %};
-                                        display:flex;align-items:center;justify-content:center;
-                                        color:{% if transaction.transaction_type == 'Income' %}var(--green){% else %}var(--red){% endif %};
-                                        flex-shrink:0;">
-                                        <i class="bi {% if transaction.transaction_type == 'Income' %}bi-graph-up{% else %}bi-graph-down{% endif %}" style="font-size:15px;"></i>
-                                    </div>
-                                    <div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Category</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in transactions %}
+                                <tr>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:10px;">
+                                            <div style="width:34px;height:34px;border-radius:8px;background:{% if transaction.transaction_type == 'Income' %}var(--green-faint){% else %}var(--red-faint){% endif %};display:flex;align-items:center;justify-content:center;color:{% if transaction.transaction_type == 'Income' %}var(--green){% else %}var(--red){% endif %};flex-shrink:0;">
+                                                <i class="bi {% if transaction.transaction_type == 'Income' %}bi-graph-up{% else %}bi-graph-down{% endif %}" style="font-size:15px;"></i>
+                                            </div>
+                                        <div>
                                         <div style="font-size:13px;font-weight:600;">{{ transaction.description }}</div>
                                         <span class="tx-type-badge {% if transaction.transaction_type == 'Income' %}income{% else %}expense{% endif %}">
                                             {{ transaction.transaction_type }}
+                                        </span></div>
+                                        </div>
+                                    </td>
+                                    <td style="font-weight:700;{% if transaction.transaction_type == 'Income' %}color:var(--green);{% else %}color:var(--red);{% endif %}">
+                                        ₹ {{ transaction.amount }}
+                                    </td>
+                                    <td>
+                                        <span style="background:#f1f5f9;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;color:var(--text-muted);">
+                                            {{ transaction.category|default:"Others" }}
                                         </span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td style="font-weight:700;{% if transaction.transaction_type == 'Income' %}color:var(--green);{% else %}color:var(--red);{% endif %}">
-                                 ₹ {{ transaction.amount }}
-                            </td>
-                            <td style="font-size:12px;color:var(--text-muted);">{{ transaction.created_at|date:"d M Y" }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <div style="padding:14px 20px;border-top:1px solid var(--border);">
-                    <a href="#" class="view-all">View All <i class="bi bi-arrow-right"></i></a>
-                </div>
+                                    </td>
+                                    <td style="font-size:12px;color:var(--text-muted);">
+                                        {{ transaction.created_at|date:"d M Y" }}
+                                    </td>
+                                    <td style="font-size:12px;color:var(--text-muted);">
+                                        {{ transaction.creation_time|time:"h:i A" }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div style="padding:14px 20px;border-top:1px solid var(--border);">
+                        <a href="{% url 'all_transactions' %}" class="view-all">View All <i class="bi bi-arrow-right"></i></a>
+                    </div>
 
                 {% else %}
                 <div class="empty-state" style="padding:50px 20px;">

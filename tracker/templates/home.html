@@ -39,8 +39,7 @@
                 <h2>Track Your Money.<br><span>Build Your Future.</span></h2>
                 <p>A simple and powerful finance tracker to help you manage your income, expenses and savings — all in one place.</p>
                 <div class="home-hero-actions">
-                    <a href="{% url 'create_wallet' %}" class="btn btn-primary">Create Wallet</a>
-                    <a href="{% url 'select_wallet' %}" class="btn btn-outline" style="border-color:rgba(255,255,255,.3);color:white;">Select Wallet</a>
+                    <a href="{% url 'create_wallet' %}" class="btn btn-outline" style="border-color:rgba(255,255,255,.3);color:white;">Create Wallet</a>
                 </div>
             </div>
             <div class="home-hero-card">
@@ -90,14 +89,21 @@
         <h2 style="margin-top:36px;margin-bottom:16px;font-size:17px;font-weight:700;">Your Wallets</h2>
         <div class="wallet-grid">
             {% for wallet in wallets %}
-            <div class="wallet-card">
-                <div class="wallet-card-header">
-                    <div class="wallet-card-icon"><i class="bi bi-wallet2"></i></div>
-                    <span class="wallet-card-badge">Active</span>
-                </div>
-                <h3>{{ wallet.wallet_name }}</h3>
-                <div class="wallet-balance">₹ {{ wallet.balance }}</div>
-            </div>
+                <form method="POST" action="{% url 'select_wallet' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="wallet_id" value="{{ wallet.wallet_id }}">
+                    <button type="submit" style="width:100%;border:none;background:none;text-align:left;">
+                    <div class="wallet-card">
+                        <div class="wallet-card-header">
+                             <div class="wallet-card-icon"><i class="bi bi-wallet2"></i></div>
+                            <span class="wallet-card-badge">Active</span>
+                        </div>
+                        <h3>{{ wallet.wallet_name }}</h3>
+                        <div class="wallet-balance">₹ {{ wallet.balance }}</div>
+                        <div class="wc-arrow">Select →</div>
+                    </div>
+                    </button>
+                </form>
             {% endfor %}
         </div>
         {% endif %}
