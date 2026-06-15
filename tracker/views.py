@@ -261,7 +261,7 @@ def logout_page(request):
 
 
 
-
+@login_required
 def all_transactions(request):
 
     wallet_id = request.session.get('wallet_id')
