@@ -7,6 +7,8 @@ from django.db.models import Sum
 from decimal import Decimal
 from .models import *
 from django.shortcuts import get_object_or_404
+import re
+
 
 
 def landing_page(request):
@@ -22,6 +24,7 @@ def login_page(request):
 
         username = request.POST.get('username')
         password = request.POST.get('password')
+        remember_me = request.POST.get('remember_me')
 
         user = authenticate(username=username,password=password)
 
@@ -31,6 +34,12 @@ def login_page(request):
 
 
         login(request, user)
+
+        if remember_me:
+            request.session.set_expiry(1209600)  # 2 weeks
+        else:
+            request.session.set_expiry(0)
+
         return redirect('home')
 
 
@@ -46,6 +55,7 @@ def register_page(request):
         last_name = request.POST.get('last_name')
         username = request.POST.get('username')
         email = request.POST.get('email')
+        phone_number = request.POST.get('phone_number', '').strip()
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
 
@@ -61,19 +71,34 @@ def register_page(request):
             messages.error(request,'Email already exists')
             return redirect('register')
 
+        if not re.fullmatch(r'\d{10}', phone_number):
+
+            messages.error(request,'Phone number must be exactly 10 digits')
+            return redirect('register')
+
+        if UserProfile.objects.filter(phone_number=phone_number).exists():
+
+            messages.error(request,'Phone number already registered')
+            return redirect('register')
+
         if password != confirm_password:
 
             messages.error(request,'Passwords do not match')
             return redirect('register')
 
 
-        User.objects.create_user(
+        user = User.objects.create_user(
 
             first_name=first_name,
             last_name=last_name,
             username=username,
             email=email,
             password=password
+        )
+
+        UserProfile.objects.create(
+            user=user,
+            phone_number=phone_number
         )
 
         messages.success(request,'Account Created Successfully')

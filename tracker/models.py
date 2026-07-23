@@ -114,5 +114,15 @@ class Transaction(BaseModel):
 
 
 
+class UserProfile(BaseModel):
 
-    
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='profile'
+    )
+
+    phone_number = models.CharField(max_length=10)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.phone_number}"

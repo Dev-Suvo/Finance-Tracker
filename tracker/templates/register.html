@@ -59,7 +59,18 @@
 
                 <div class="form-group">
                     <label>Phone Number</label>
-                    <input type="text" name="phone_number" class="form-control" placeholder="Enter phone number">
+                    <input
+                        type="text"
+                        name="phone_number"
+                        id="phone_number"
+                        class="form-control"
+                        placeholder="Enter 10-digit phone number"
+                        inputmode="numeric"
+                        maxlength="10"
+                        pattern="\d{10}"
+                        title="Phone number must be exactly 10 digits"
+                        required
+                    >
                 </div>
 
                 <div class="form-row">
@@ -93,4 +104,18 @@
     </div>
 
 </div>
+{% endblock %}
+
+
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const phoneInput = document.getElementById('phone_number');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').slice(0, 10);
+        });
+    }
+});
+</script>
 {% endblock %}
