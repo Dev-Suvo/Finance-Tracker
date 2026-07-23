@@ -95,13 +95,8 @@
 
                 <div class="form-group">
                     <label>Category</label>
-                    <select name="category" class="form-control">
-                        <option value="General" {% if transaction.category == 'General' %}selected{% endif %}>General</option>
-                        <option value="Food" {% if transaction.category == 'Food' %}selected{% endif %}>Food</option>
-                        <option value="Transport" {% if transaction.category == 'Transport' %}selected{% endif %}>Transport</option>
-                        <option value="Shopping" {% if transaction.category == 'Shopping' %}selected{% endif %}>Shopping</option>
-                        <option value="Bills" {% if transaction.category == 'Bills' %}selected{% endif %}>Bills</option>
-                        <option value="Others" {% if transaction.category == 'Others' %}selected{% endif %}>Others</option>
+                    <select name="category" id="category" class="form-control" required>
+                        <option value="{{ transaction.category }}" selected>{{ transaction.category }}</option>
                     </select>
                 </div>
 
@@ -114,4 +109,33 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+
+
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const typeInput = document.getElementById('transaction_type');
+    const currentType = typeInput.value;
+    const currentCategory = "{{ transaction.category }}";
+
+    const incomeCategories = ['Salary','Freelance','Stipend','Scholarship','Business Revenue','Other'];
+    const expenseCategories = ['Food','Transport','Shopping','Bills','Subscription','Other'];
+
+    // app.js's loadCategories() already runs on button click and fills #category,
+    // this just pre-selects the transaction's current category on first load.
+    const categorySelect = document.getElementById('category');
+    const list = currentType === 'Income' ? incomeCategories : expenseCategories;
+
+    categorySelect.innerHTML = '<option value="">Select Category</option>';
+    list.forEach(function (cat) {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        if (cat === currentCategory) opt.selected = true;
+        categorySelect.appendChild(opt);
+    });
+});
+</script>
 {% endblock %}

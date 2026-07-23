@@ -154,21 +154,9 @@
                 <div class="pie-wrap">
                     <svg viewBox="0 0 36 36" width="160" height="160">
                         <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f1f5f9" stroke-width="3.5"/>
-                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7c3aed"
-                            stroke-width="3.5" stroke-dasharray="40 60" stroke-dashoffset="25"
-                            transform="rotate(-90 18 18)"/>
-                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#10b981"
-                            stroke-width="3.5" stroke-dasharray="20 80" stroke-dashoffset="-15"
-                            transform="rotate(-90 18 18)"/>
-                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f59e0b"
-                            stroke-width="3.5" stroke-dasharray="15 85" stroke-dashoffset="-35"
-                            transform="rotate(-90 18 18)"/>
-                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#ef4444"
-                            stroke-width="3.5" stroke-dasharray="10 90" stroke-dashoffset="-50"
-                            transform="rotate(-90 18 18)"/>
-                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#64748b"
-                            stroke-width="3.5" stroke-dasharray="15 85" stroke-dashoffset="-60"
-                            transform="rotate(-90 18 18)"/>
+                        {% for cat in expense_breakdown %}
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="{{ cat.color }}"stroke-width="3.5" stroke-dasharray="{{ cat.dasharray }}"stroke-dashoffset="{{ cat.dashoffset }}"transform="rotate(-90 18 18)"/>
+                        {% endfor %}
                     </svg>
                     <div class="pie-center-text">
                         <div class="pct-val" style="color:var(--red);">₹{{ expense }}</div>
@@ -176,26 +164,14 @@
                     </div>
                 </div>
                 <div class="expense-legend">
+                    {% for cat in expense_breakdown %}
                     <div class="legend-row">
-                        <div class="legend-label"><span class="legend-dot" style="background:#7c3aed;"></span>Food</div>
-                        <div class="legend-pct">40%</div>
+                        <div class="legend-label"><span class="legend-dot" style="background:{{ cat.color }};"></span>{{ cat.category }}</div>
+                        <div class="legend-pct">{{ cat.percent }}%</div>
                     </div>
-                    <div class="legend-row">
-                        <div class="legend-label"><span class="legend-dot" style="background:#10b981;"></span>Transport</div>
-                        <div class="legend-pct">20%</div>
-                    </div>
-                    <div class="legend-row">
-                        <div class="legend-label"><span class="legend-dot" style="background:#f59e0b;"></span>Shopping</div>
-                        <div class="legend-pct">15%</div>
-                    </div>
-                    <div class="legend-row">
-                        <div class="legend-label"><span class="legend-dot" style="background:#ef4444;"></span>Bills</div>
-                        <div class="legend-pct">10%</div>
-                    </div>
-                    <div class="legend-row">
-                        <div class="legend-label"><span class="legend-dot" style="background:#64748b;"></span>Others</div>
-                        <div class="legend-pct">15%</div>
-                    </div>
+                    {% empty %}
+                    <p style="color:var(--text-muted);font-size:13px;">No expenses yet.</p>
+                    {% endfor %}
                 </div>
             </div>
 
@@ -205,18 +181,9 @@
                 <div class="pie-wrap">
                     <svg viewBox="0 0 36 36" width="160" height="160">
                         <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f1f5f9" stroke-width="3.5"/>
-                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#10b981"
-                            stroke-width="3.5" stroke-dasharray="50 50" stroke-dashoffset="25"
-                            transform="rotate(-90 18 18)"/>
-                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7c3aed"
-                            stroke-width="3.5" stroke-dasharray="25 75" stroke-dashoffset="-25"
-                            transform="rotate(-90 18 18)"/>
-                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f59e0b"
-                            stroke-width="3.5" stroke-dasharray="15 85" stroke-dashoffset="-50"
-                            transform="rotate(-90 18 18)"/>
-                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#3b82f6"
-                            stroke-width="3.5" stroke-dasharray="10 90" stroke-dashoffset="-65"
-                            transform="rotate(-90 18 18)"/>
+                        {% for cat in income_breakdown %}
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="{{ cat.color }}"stroke-width="3.5" stroke-dasharray="{{ cat.dasharray }}"stroke-dashoffset="{{ cat.dashoffset }}"transform="rotate(-90 18 18)"/>
+                        {% endfor %}
                     </svg>
                     <div class="pie-center-text">
                         <div class="pct-val" style="color:var(--green);">₹{{ income }}</div>
@@ -224,27 +191,18 @@
                     </div>
                 </div>
                 <div class="expense-legend">
+                    {% for cat in income_breakdown %}
                     <div class="legend-row">
-                        <div class="legend-label"><span class="legend-dot" style="background:#10b981;"></span>Salary</div>
-                        <div class="legend-pct">50%</div>
+                        <div class="legend-label"><span class="legend-dot" style="background:{{ cat.color }};"></span>{{ cat.category }}</div>
+                        <div class="legend-pct">{{ cat.percent }}%</div>
                     </div>
-                    <div class="legend-row">
-                        <div class="legend-label"><span class="legend-dot" style="background:#7c3aed;"></span>Freelance</div>
-                        <div class="legend-pct">25%</div>
-                    </div>
-                    <div class="legend-row">
-                        <div class="legend-label"><span class="legend-dot" style="background:#f59e0b;"></span>Business</div>
-                        <div class="legend-pct">15%</div>
-                    </div>
-                    <div class="legend-row">
-                        <div class="legend-label"><span class="legend-dot" style="background:#3b82f6;"></span>Others</div>
-                        <div class="legend-pct">10%</div>
-                    </div>
+                    {% empty %}
+                    <p style="color:var(--text-muted);font-size:13px;">No income yet.</p>
+                    {% endfor %}
                 </div>
+                
             </div>
-
         </div>
-
     </div>
 </div>
 {% endblock %}

@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const typeBtns = document.querySelectorAll('.type-btn');
     const typeInput = document.getElementById('transaction_type');
     const categorySelect = document.getElementById('category');
-    console.log(categorySelect);
 
     const incomeCategories = [
         'Salary',
@@ -37,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function loadCategories(categories) {
 
-        alert("Loading Categories");
+        if (!categorySelect) return;
 
         categorySelect.innerHTML =
         '<option value="">Select Category</option>';

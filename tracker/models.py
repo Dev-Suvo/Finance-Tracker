@@ -47,7 +47,30 @@ class Transaction(BaseModel):
         ('Expense', 'Expense'),
     )
 
+    INCOME_CATEGORIES = (
+        ('Salary', 'Salary'),
+        ('Freelance', 'Freelance'),
+        ('Stipend', 'Stipend'),
+        ('Scholarship', 'Scholarship'),
+        ('Business Revenue', 'Business Revenue'),
+        ('Other', 'Other'),
+    )
+
+    EXPENSE_CATEGORIES = (
+        ('Food', 'Food'),
+        ('Transport', 'Transport'),
+        ('Shopping', 'Shopping'),
+        ('Bills', 'Bills'),
+        ('Subscription', 'Subscription'),
+        ('Other', 'Other'),
+    )
+
     CATEGORY_CHOICES = (
+        ('Salary', 'Salary'),
+        ('Freelance', 'Freelance'),
+        ('Stipend', 'Stipend'),
+        ('Scholarship', 'Scholarship'),
+        ('Business Revenue', 'Business Revenue'),
         ('Food', 'Food'),
         ('Transport', 'Transport'),
         ('Shopping', 'Shopping'),
@@ -74,7 +97,7 @@ class Transaction(BaseModel):
     )
 
     category = models.CharField(
-        max_length=20,
+        max_length=30,
         choices=CATEGORY_CHOICES,
         default='Other'
     )
@@ -88,3 +111,8 @@ class Transaction(BaseModel):
 
     def __str__(self):
         return self.description
+
+
+
+
+    

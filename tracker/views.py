@@ -219,6 +219,40 @@ def create_transaction_page(request):
 
 
 
+#helperFunction
+
+
+
+def get_category_breakdown(wallet, tx_type):
+    qs = (Transaction.objects
+          .filter(wallet=wallet, transaction_type=tx_type)
+          .values('category')
+          .annotate(total=Sum('amount'))
+          .order_by('-total'))
+
+    total_amount = sum(row['total'] for row in qs) or 0
+    colors = ['#7c3aed', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#64748b']
+
+    breakdown = []
+    cumulative = 0
+    for i, row in enumerate(qs):
+        amount = row['total']
+        percent = round((amount / total_amount) * 100, 1) if total_amount else 0
+        breakdown.append({
+            'category': row['category'],
+            'amount': amount,
+            'percent': percent,
+            'color': colors[i % len(colors)],
+            'dasharray': f'{percent} {100 - percent}',
+            'dashoffset': 25 - cumulative,
+        })
+        cumulative += percent
+
+    return breakdown, total_amount
+
+
+
+
 @login_required
 def dashboard_page(request):
 
@@ -242,6 +276,10 @@ def dashboard_page(request):
 
     income = Transaction.objects.filter(wallet=wallet,transaction_type='Income').aggregate(total=Sum('amount'))['total'] or 0
     expense = Transaction.objects.filter(wallet=wallet,transaction_type='Expense').aggregate(total=Sum('amount'))['total'] or 0
+
+    expense_breakdown, _ = get_category_breakdown(wallet, 'Expense')
+    income_breakdown, _ = get_category_breakdown(wallet, 'Income')
+
     context = {
         'wallet': wallet,
         'transactions': transactions,
@@ -249,8 +287,11 @@ def dashboard_page(request):
         'balance': wallet.balance,
         'income': income,
         'expense': expense,
+        'expense_breakdown': expense_breakdown,
+        'income_breakdown': income_breakdown,
         }
     return render(request,'dashboard.html',context)
+
 
 
 
@@ -268,9 +309,15 @@ def logout_page(request):
 def all_transactions(request):
 
     wallet_id = request.session.get('wallet_id')
-    wallet = Wallet.objects.get(wallet_id=wallet_id, user=request.user)
-    all_transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at', '-creation_time', '-transaction_id',)
+    if not wallet_id:
+        return redirect('select_wallet')
 
+    try:
+        wallet = Wallet.objects.get(wallet_id=wallet_id, user=request.user)
+    except Wallet.DoesNotExist:
+        return redirect('select_wallet')
+
+    all_transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at', '-creation_time', '-transaction_id',)
 
     return render(request, 'all_transactions.html', {'wallet': wallet,'all_transactions': all_transactions})
 
