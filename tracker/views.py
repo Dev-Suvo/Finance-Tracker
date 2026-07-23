@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from decimal import Decimal
 from .models import *
+from django.shortcuts import get_object_or_404
 
 
 def landing_page(request):
@@ -128,10 +129,12 @@ def select_wallet_page(request):
     if request.method == 'POST':
 
         wallet_id = request.POST.get('wallet_id')
-
+        if not Wallet.objects.filter(wallet_id=wallet_id, user=request.user).exists():
+            messages.error(request, 'Invalid wallet selected')
+            return redirect('select_wallet')
         request.session['wallet_id'] = str(wallet_id)
         return redirect('main_menu')
-    
+
     context = {'wallets': wallets}
     return render(request,'select_wallet.html',context)
 
@@ -265,7 +268,7 @@ def logout_page(request):
 def all_transactions(request):
 
     wallet_id = request.session.get('wallet_id')
-    wallet = Wallet.objects.get(wallet_id=wallet_id)
+    wallet = Wallet.objects.get(wallet_id=wallet_id, user=request.user)
     all_transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at', '-creation_time', '-transaction_id',)
 
 
@@ -276,7 +279,7 @@ def all_transactions(request):
 @login_required
 def update_transaction(request,transaction_id):
 
-    transaction =Transaction.objects.get(transaction_id = transaction_id)
+    transaction = get_object_or_404(Transaction, transaction_id=transaction_id, wallet__user=request.user)
 
     if request.method == 'POST':
 
@@ -332,7 +335,7 @@ def update_transaction(request,transaction_id):
 @login_required
 def delete_transaction(request, transaction_id):
 
-    transaction = Transaction.objects.get(transaction_id = transaction_id)
+    transaction = get_object_or_404(Transaction, transaction_id=transaction_id, wallet__user=request.user)
 
     wallet = transaction.wallet
     if transaction.transaction_type == 'Income':
