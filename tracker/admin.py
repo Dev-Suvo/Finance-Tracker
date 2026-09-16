@@ -1,3 +1,25 @@
 from django.contrib import admin
+from .models import Wallet, Transaction, UserProfile
 
-# Register your models here.
+
+@admin.register(Wallet)
+class WalletAdmin(admin.ModelAdmin):
+    list_display = ['wallet_name', 'user', 'balance', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['wallet_name', 'user__username']
+    readonly_fields = ['wallet_id', 'created_at', 'creation_time', 'updated_at', 'updation_time']
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = ['description', 'wallet', 'transaction_type', 'category', 'amount', 'created_at']
+    list_filter = ['transaction_type', 'category', 'created_at']
+    search_fields = ['description']
+    readonly_fields = ['transaction_id', 'created_at', 'creation_time', 'updated_at', 'updation_time']
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ['user', 'phone_number', 'created_at']
+    search_fields = ['user__username', 'phone_number']
+    readonly_fields = ['created_at', 'creation_time', 'updated_at', 'updation_time']

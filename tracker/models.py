@@ -47,24 +47,6 @@ class Transaction(BaseModel):
         ('Expense', 'Expense'),
     )
 
-    INCOME_CATEGORIES = (
-        ('Salary', 'Salary'),
-        ('Freelance', 'Freelance'),
-        ('Stipend', 'Stipend'),
-        ('Scholarship', 'Scholarship'),
-        ('Business Revenue', 'Business Revenue'),
-        ('Other', 'Other'),
-    )
-
-    EXPENSE_CATEGORIES = (
-        ('Food', 'Food'),
-        ('Transport', 'Transport'),
-        ('Shopping', 'Shopping'),
-        ('Bills', 'Bills'),
-        ('Subscription', 'Subscription'),
-        ('Other', 'Other'),
-    )
-
     CATEGORY_CHOICES = (
         ('Salary', 'Salary'),
         ('Freelance', 'Freelance'),

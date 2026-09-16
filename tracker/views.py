@@ -1,251 +1,15 @@
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib import messages
+from django.shortcuts import redirect
 from django.db.models import Sum
-from decimal import Decimal
-from .models import *
-from django.shortcuts import get_object_or_404
-import re
-
-
-
-def landing_page(request):
-
-    return render(request, 'landing.html')
-
-
-
-
-def login_page(request):
-
-    if request.method == 'POST':
-
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        remember_me = request.POST.get('remember_me')
-
-        user = authenticate(username=username,password=password)
-
-        if user is None:
-            messages.error(request,'Invalid Username or Password')
-            return redirect('login')
-
-
-        login(request, user)
-
-        if remember_me:
-            request.session.set_expiry(1209600)  # 2 weeks
-        else:
-            request.session.set_expiry(0)
-
-        return redirect('home')
-
-
-    return render(request, 'login.html')
-
-
-
-def register_page(request):
-
-    if request.method == 'POST':
-
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        phone_number = request.POST.get('phone_number', '').strip()
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
-
-
-        if User.objects.filter(username=username).exists():
-
-            messages.error(request,'Username already exists')
-            return redirect('register')
-
-
-        if User.objects.filter(email=email).exists():
-
-            messages.error(request,'Email already exists')
-            return redirect('register')
-
-        if not re.fullmatch(r'\d{10}', phone_number):
-
-            messages.error(request,'Phone number must be exactly 10 digits')
-            return redirect('register')
-
-        if UserProfile.objects.filter(phone_number=phone_number).exists():
-
-            messages.error(request,'Phone number already registered')
-            return redirect('register')
-
-        if password != confirm_password:
-
-            messages.error(request,'Passwords do not match')
-            return redirect('register')
-
-
-        user = User.objects.create_user(
-
-            first_name=first_name,
-            last_name=last_name,
-            username=username,
-            email=email,
-            password=password
-        )
-
-        UserProfile.objects.create(
-            user=user,
-            phone_number=phone_number
-        )
-
-        messages.success(request,'Account Created Successfully')
-        return redirect('login')
-
-    return render(request, 'register.html')
-
-
-
-
-@login_required
-def home_page(request):
-
-    wallets = Wallet.objects.filter(user=request.user)
-    context = {'wallets': wallets}
-
-    return render(request,'home.html',context)
-
-
-
-
-@login_required
-def create_wallet_page(request):
-
-    if request.method == 'POST':
-
-        wallet_name = request.POST.get('wallet_name').strip()
-
-        if not wallet_name:
-            messages.error(request,'Wallet name is required')
-
-            return redirect('create_wallet')
-
-        Wallet.objects.create(
-            user=request.user,
-            wallet_name=wallet_name
-        )
-
-        messages.success(request,'Wallet Created Successfully')
-
-        return redirect('select_wallet')
-
-    return render(request,'create_wallet.html')
-
-
-
-
-@login_required
-def select_wallet_page(request):
-
-    wallets = Wallet.objects.filter(user=request.user)
-
-    if request.method == 'POST':
-
-        wallet_id = request.POST.get('wallet_id')
-        if not Wallet.objects.filter(wallet_id=wallet_id, user=request.user).exists():
-            messages.error(request, 'Invalid wallet selected')
-            return redirect('select_wallet')
-        request.session['wallet_id'] = str(wallet_id)
-        return redirect('main_menu')
-
-    context = {'wallets': wallets}
-    return render(request,'select_wallet.html',context)
-
-
-
-
-
-@login_required
-def main_menu_page(request):
-
-    wallet_id = request.session.get('wallet_id')
-    if not wallet_id:
-        return redirect('select_wallet')
-
-    try:
-
-        wallet = Wallet.objects.get(wallet_id=wallet_id,user=request.user)
-
-    except Wallet.DoesNotExist:
-
-        return redirect('select_wallet')
-
-    context = {'wallet': wallet}
-    return render(request,'main_menu.html',context)
-
-
-
-@login_required
-def create_transaction_page(request):
-
-    wallet_id = request.session.get('wallet_id')
-
-    if not wallet_id:
-        return redirect('select_wallet')
-
-    try:
-        wallet = Wallet.objects.get(
-            wallet_id=wallet_id,
-            user=request.user
-        )
-
-    except Wallet.DoesNotExist:
-        return redirect('select_wallet')
-
-
-    if request.method == 'POST':
-
-        transaction_type = request.POST.get('transaction_type')
-        description = request.POST.get('description')
-        category = request.POST.get('category')
-
-
-        try:
-            amount = Decimal(request.POST.get('amount'))
-
-        except:
-            messages.error(request,'Enter a valid amount')
-            return redirect('create_transaction')
-
-
-        Transaction.objects.create(
-            wallet=wallet,
-            transaction_type=transaction_type,
-            description=description,
-            amount=amount,
-            category = category
-        )
-
-        if transaction_type == 'Income':
-            wallet.balance += amount
-
-        else:
-            wallet.balance -= amount
-        wallet.save()
-
-        messages.success(request,'Transaction Added Successfully')
-        return redirect('dashboard')
-
-    context = {'wallet': wallet}
-    return render(request,'create_transaction.html',context)
-
-
-
-
-#helperFunction
-
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.renderers import TemplateHTMLRenderer
+
+from .models import Wallet, Transaction, UserProfile
+from .serializers import UserRegisterSerializer, TransactionSerializer
 
 
 def get_category_breakdown(wallet, tx_type):
@@ -276,104 +40,283 @@ def get_category_breakdown(wallet, tx_type):
     return breakdown, total_amount
 
 
+class LandingPageView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    permission_classes = []
+
+    def get(self, request):
+        return Response(template_name='landing.html')
 
 
-@login_required
-def dashboard_page(request):
+class LoginPageView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    permission_classes = []
 
-    wallet_id = request.session.get('wallet_id')
+    def get(self, request):
+        return Response(template_name='login.html')
 
-    if not wallet_id:
-        return redirect('select_wallet')
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        remember_me = request.data.get('remember_me')
 
-    try:
-        wallet = Wallet.objects.get(
-            wallet_id=wallet_id,
-            user=request.user
+        user = authenticate(username=username, password=password)
+
+        if user is None:
+            messages.error(request, 'Invalid Username or Password')
+            return redirect('login')
+
+        login(request, user)
+
+        if remember_me:
+            request.session.set_expiry(1209600)
+        else:
+            request.session.set_expiry(0)
+
+        return redirect('home')
+
+
+class RegisterPageView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    permission_classes = []
+
+    def get(self, request):
+        return Response(template_name='register.html')
+
+    def post(self, request):
+        serializer = UserRegisterSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            for error in serializer.errors.values():
+                if isinstance(error, list):
+                    for msg in error:
+                        messages.error(request, msg if isinstance(msg, str) else str(msg))
+                else:
+                    messages.error(request, str(error))
+            return redirect('register')
+
+        data = serializer.validated_data
+
+        user = User.objects.create_user(
+            first_name=data['first_name'],
+            last_name=data['last_name'],
+            username=data['username'],
+            email=data['email'],
+            password=data['password']
         )
 
-    except Wallet.DoesNotExist:
+        UserProfile.objects.create(
+            user=user,
+            phone_number=data['phone_number']
+        )
+
+        messages.success(request, 'Account Created Successfully')
+        return redirect('login')
+
+
+class HomePageView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        wallets = Wallet.objects.filter(user=request.user)
+        return Response({'wallets': wallets}, template_name='home.html')
+
+
+class CreateWalletPageView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response(template_name='create_wallet.html')
+
+    def post(self, request):
+        wallet_name = (request.data.get('wallet_name') or '').strip()
+
+        if not wallet_name:
+            messages.error(request, 'Wallet name is required')
+            return redirect('create_wallet')
+
+        Wallet.objects.create(user=request.user, wallet_name=wallet_name)
+
         return redirect('select_wallet')
 
 
-    transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at', '-creation_time', '-transaction_id',)[:3]
-    all_transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at', '-creation_time', '-transaction_id',)
+class SelectWalletPageView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    permission_classes = [IsAuthenticated]
 
-    income = Transaction.objects.filter(wallet=wallet,transaction_type='Income').aggregate(total=Sum('amount'))['total'] or 0
-    expense = Transaction.objects.filter(wallet=wallet,transaction_type='Expense').aggregate(total=Sum('amount'))['total'] or 0
+    def get(self, request):
+        wallets = Wallet.objects.filter(user=request.user)
+        return Response({'wallets': wallets}, template_name='select_wallet.html')
 
-    expense_breakdown, _ = get_category_breakdown(wallet, 'Expense')
-    income_breakdown, _ = get_category_breakdown(wallet, 'Income')
-
-    context = {
-        'wallet': wallet,
-        'transactions': transactions,
-        'all_transactions': all_transactions,
-        'balance': wallet.balance,
-        'income': income,
-        'expense': expense,
-        'expense_breakdown': expense_breakdown,
-        'income_breakdown': income_breakdown,
-        }
-    return render(request,'dashboard.html',context)
+    def post(self, request):
+        wallet_id = request.data.get('wallet_id')
+        if not Wallet.objects.filter(wallet_id=wallet_id, user=request.user).exists():
+            messages.error(request, 'Invalid wallet selected')
+            return redirect('select_wallet')
+        request.session['wallet_id'] = str(wallet_id)
+        return redirect('main_menu')
 
 
+class MainMenuPageView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    permission_classes = [IsAuthenticated]
 
-
-
-@login_required
-def logout_page(request):
-
-    request.session.flush()
-    logout(request)
-    return redirect('landing')
-
-
-
-@login_required
-def all_transactions(request):
-
-    wallet_id = request.session.get('wallet_id')
-    if not wallet_id:
-        return redirect('select_wallet')
-
-    try:
-        wallet = Wallet.objects.get(wallet_id=wallet_id, user=request.user)
-    except Wallet.DoesNotExist:
-        return redirect('select_wallet')
-
-    all_transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at', '-creation_time', '-transaction_id',)
-
-    return render(request, 'all_transactions.html', {'wallet': wallet,'all_transactions': all_transactions})
-
-
-
-@login_required
-def update_transaction(request,transaction_id):
-
-    transaction = get_object_or_404(Transaction, transaction_id=transaction_id, wallet__user=request.user)
-
-    if request.method == 'POST':
-
-        new_type = request.POST.get('transaction_type')
-        new_description = request.POST.get('description')
-        new_category = request.POST.get('category')
-
+    def _get_wallet(self, request):
+        wallet_id = request.session.get('wallet_id')
+        if not wallet_id:
+            return None
         try:
-            new_amount = Decimal(
-                request.POST.get('amount')
-            )
+            return Wallet.objects.get(wallet_id=wallet_id, user=request.user)
+        except Wallet.DoesNotExist:
+            return None
 
-        except:
-            messages.error(
-                request,
-                'Enter a valid amount'
-            )
-            return redirect(
-                'update_transaction',
-                transaction_id=transaction_id
-            )
+    def get(self, request):
+        wallet = self._get_wallet(request)
+        if wallet is None:
+            return redirect('select_wallet')
+        return Response({'wallet': wallet}, template_name='main_menu.html')
 
+
+class CreateTransactionPageView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def _get_wallet(self, request):
+        wallet_id = request.session.get('wallet_id')
+        if not wallet_id:
+            return None
+        try:
+            return Wallet.objects.get(wallet_id=wallet_id, user=request.user)
+        except Wallet.DoesNotExist:
+            return None
+
+    def get(self, request):
+        wallet = self._get_wallet(request)
+        if wallet is None:
+            return redirect('select_wallet')
+        return Response({'wallet': wallet}, template_name='create_transaction.html')
+
+    def post(self, request):
+        wallet = self._get_wallet(request)
+        if wallet is None:
+            return redirect('select_wallet')
+
+        serializer = TransactionSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            messages.error(request, 'Enter a valid amount')
+            return redirect('create_transaction')
+
+        data = serializer.validated_data
+        transaction = serializer.save(wallet=wallet)
+
+        if transaction.transaction_type == 'Income':
+            wallet.balance += transaction.amount
+        else:
+            wallet.balance -= transaction.amount
+        wallet.save()
+
+        return redirect('dashboard')
+
+
+class DashboardPageView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def _get_wallet(self, request):
+        wallet_id = request.session.get('wallet_id')
+        if not wallet_id:
+            return None
+        try:
+            return Wallet.objects.get(wallet_id=wallet_id, user=request.user)
+        except Wallet.DoesNotExist:
+            return None
+
+    def get(self, request):
+        wallet = self._get_wallet(request)
+        if wallet is None:
+            return redirect('select_wallet')
+
+        transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at', '-creation_time', '-transaction_id',)[:3]
+        all_transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at', '-creation_time', '-transaction_id',)
+
+        income = Transaction.objects.filter(wallet=wallet, transaction_type='Income').aggregate(total=Sum('amount'))['total'] or 0
+        expense = Transaction.objects.filter(wallet=wallet, transaction_type='Expense').aggregate(total=Sum('amount'))['total'] or 0
+
+        expense_breakdown, _ = get_category_breakdown(wallet, 'Expense')
+        income_breakdown, _ = get_category_breakdown(wallet, 'Income')
+
+        context = {
+            'wallet': wallet,
+            'transactions': transactions,
+            'all_transactions': all_transactions,
+            'balance': wallet.balance,
+            'income': income,
+            'expense': expense,
+            'expense_breakdown': expense_breakdown,
+            'income_breakdown': income_breakdown,
+        }
+        return Response(context, template_name='dashboard.html')
+
+
+class LogoutPageView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        request.session.flush()
+        logout(request)
+        return redirect('landing')
+
+
+class AllTransactionsView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def _get_wallet(self, request):
+        wallet_id = request.session.get('wallet_id')
+        if not wallet_id:
+            return None
+        try:
+            return Wallet.objects.get(wallet_id=wallet_id, user=request.user)
+        except Wallet.DoesNotExist:
+            return None
+
+    def get(self, request):
+        wallet = self._get_wallet(request)
+        if wallet is None:
+            return redirect('select_wallet')
+
+        all_transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at', '-creation_time', '-transaction_id',)
+        return Response(
+            {'wallet': wallet, 'all_transactions': all_transactions},
+            template_name='all_transactions.html'
+        )
+
+
+class UpdateTransactionView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, transaction_id):
+        transaction = Transaction.objects.filter(transaction_id=transaction_id, wallet__user=request.user).first()
+        if transaction is None:
+            return redirect('all_transactions')
+        return Response({'transaction': transaction}, template_name='update_transaction.html')
+
+    def post(self, request, transaction_id):
+        transaction = Transaction.objects.filter(transaction_id=transaction_id, wallet__user=request.user).first()
+        if transaction is None:
+            return redirect('all_transactions')
+
+        serializer = TransactionSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            messages.error(request, 'Enter a valid amount')
+            return redirect('update_transaction', transaction_id=transaction_id)
+
+        data = serializer.validated_data
         wallet = transaction.wallet
 
         if transaction.transaction_type == 'Income':
@@ -381,44 +324,38 @@ def update_transaction(request,transaction_id):
         else:
             wallet.balance += transaction.amount
 
-        # Apply NEW transaction effect
-        if new_type == 'Income':
-            wallet.balance += new_amount
+        if data['transaction_type'] == 'Income':
+            wallet.balance += data['amount']
         else:
-            wallet.balance -= new_amount
+            wallet.balance -= data['amount']
 
         wallet.save()
 
-        transaction.transaction_type = new_type
-        transaction.description = new_description
-        transaction.category = new_category
-        transaction.amount = new_amount
-
+        transaction.transaction_type = data['transaction_type']
+        transaction.description = data['description']
+        transaction.category = data['category']
+        transaction.amount = data['amount']
         transaction.save()
 
-        messages.success(request,'Transaction Updated Successfully')
         return redirect('all_transactions')
 
-    context = {'transaction': transaction}
-    return render(request,'update_transaction.html',context)
 
+class DeleteTransactionView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request, transaction_id):
+        transaction = Transaction.objects.filter(transaction_id=transaction_id, wallet__user=request.user).first()
+        if transaction is None:
+            return redirect('all_transactions')
 
-@login_required
-def delete_transaction(request, transaction_id):
+        wallet = transaction.wallet
+        if transaction.transaction_type == 'Income':
+            wallet.balance -= transaction.amount
+        else:
+            wallet.balance += transaction.amount
 
-    transaction = get_object_or_404(Transaction, transaction_id=transaction_id, wallet__user=request.user)
+        wallet.save()
+        transaction.delete()
 
-    wallet = transaction.wallet
-    if transaction.transaction_type == 'Income':
-        wallet.balance -= transaction.amount
-    else:
-        wallet.balance += transaction.amount
-
-    wallet.save()
-
-    transaction.delete()
-
-    messages.success(request,'Transaction Deleted Successfully')
-
-    return redirect('all_transactions')    
+        messages.success(request, 'Transaction Deleted Successfully')
+        return redirect('all_transactions')
