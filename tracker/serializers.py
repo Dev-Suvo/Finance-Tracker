@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 import re
-from .models import UserProfile, Wallet, Transaction, Budget
+from .models import UserProfile, Wallet, Transaction, Budget, SavingsGoal
 
 
 class UserRegisterSerializer(serializers.Serializer):
@@ -77,4 +77,16 @@ class BudgetSerializer(serializers.ModelSerializer):
     def validate_limit_amount(self, value):
         if value is None or value <= 0:
             raise serializers.ValidationError('Budget limit must be greater than 0')
+        return value
+
+
+class SavingsGoalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavingsGoal
+        fields = ['goal_id', 'wallet', 'name', 'target_amount', 'period', 'deadline', 'is_active']
+        read_only_fields = ['goal_id', 'wallet']
+
+    def validate_target_amount(self, value):
+        if value is None or value <= 0:
+            raise serializers.ValidationError('Target amount must be greater than 0')
         return value

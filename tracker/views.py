@@ -1,6 +1,8 @@
 import csv
 import io
+import secrets
 
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.views import PasswordResetView
@@ -15,8 +17,8 @@ from rest_framework.renderers import TemplateHTMLRenderer
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
-from .models import Wallet, Transaction, UserProfile, Budget
-from .serializers import UserRegisterSerializer, TransactionSerializer, BudgetSerializer
+from .models import Wallet, Transaction, UserProfile, Budget, SavingsGoal
+from .serializers import UserRegisterSerializer, TransactionSerializer, BudgetSerializer, SavingsGoalSerializer
 
 
 def get_category_breakdown(wallet, tx_type):
@@ -63,14 +65,19 @@ class LoginPageView(APIView):
         return Response(template_name='login.html')
 
     def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        remember_me = request.data.get('remember_me')
+        username = request.POST.get('username') or request.data.get('username')
+        password = request.POST.get('password') or request.data.get('password')
+        remember_me = request.POST.get('remember_me') or request.data.get('remember_me')
 
         user = authenticate(username=username, password=password)
 
         if user is None:
             messages.error(request, 'Invalid Username or Password')
+            return redirect('login')
+
+        profile = UserProfile.objects.filter(user=user).first()
+        if profile and not profile.email_verified:
+            messages.error(request, 'Please verify your email before logging in.')
             return redirect('login')
 
         login(request, user)
@@ -79,6 +86,28 @@ class LoginPageView(APIView):
             request.session.set_expiry(1209600)
         else:
             request.session.set_expiry(0)
+
+        if profile and not profile.welcome_email_sent:
+            try:
+                from django.core.mail import EmailMultiAlternatives
+                from django.template.loader import render_to_string
+                host = request.get_host()
+                scheme = request.scheme
+                html = render_to_string('email_welcome.html', {
+                    'user': user, 'protocol': scheme, 'domain': host,
+                })
+                msg = EmailMultiAlternatives(
+                    'Welcome to FinanceTracker!',
+                    f'Welcome {user.first_name}!',
+                    f'FinanceTracker <{settings.EMAIL_HOST_USER}>',
+                    [user.email]
+                )
+                msg.attach_alternative(html, 'text/html')
+                msg.send()
+                profile.welcome_email_sent = True
+                profile.save()
+            except Exception:
+                pass
 
         return redirect('home')
 
@@ -103,6 +132,7 @@ class RegisterPageView(APIView):
             return redirect('register')
 
         data = serializer.validated_data
+        email_token = secrets.token_hex(32)
 
         user = User.objects.create_user(
             first_name=data['first_name'],
@@ -112,9 +142,25 @@ class RegisterPageView(APIView):
             password=data['password']
         )
 
-        UserProfile.objects.create(user=user, phone_number=data['phone_number'])
+        UserProfile.objects.create(user=user, phone_number=data['phone_number'], email_token=email_token)
 
-        messages.success(request, 'Account Created Successfully')
+        host = request.get_host()
+        scheme = request.scheme
+
+        try:
+            from django.core.mail import EmailMultiAlternatives
+            from django.template.loader import render_to_string
+
+            verify_html = render_to_string('email_verify.html', {
+                'token': email_token, 'protocol': scheme, 'domain': host,
+            })
+            msg = EmailMultiAlternatives('Verify Your Email', 'Verify your email.', f'FinanceTracker <{settings.EMAIL_HOST_USER}>', [user.email])
+            msg.attach_alternative(verify_html, 'text/html')
+            msg.send()
+        except Exception:
+            pass
+
+        messages.success(request, 'Account Created! Check your email to verify.')
         return redirect('login')
 
 
@@ -568,7 +614,6 @@ class DeleteBudgetView(APIView):
         return redirect('budgets')
 
 
-from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.contrib.auth.tokens import default_token_generator
@@ -606,13 +651,70 @@ class CustomPasswordResetView(View):
                         'user': user,
                     })
 
-                    msg = EmailMultiAlternatives(subject, text_content, 'FinanceTracker <noreply@financetracker.com>', [email])
+                    msg = EmailMultiAlternatives(subject, text_content, f'FinanceTracker <{settings.EMAIL_HOST_USER}>', [email])
                     msg.attach_alternative(html_content, 'text/html')
-                    sent = msg.send()
-                    print(f'[PASSWORD RESET] Email sent to {email}, result={sent}')
-                except Exception as e:
-                    print(f'[PASSWORD RESET ERROR] {type(e).__name__}: {e}')
-        else:
-            print(f'[PASSWORD RESET] No user found with email: {email}')
+                    msg.send()
+                except Exception:
+                    pass
 
         return redirect('password_reset_done')
+
+
+class VerifyEmailView(APIView):
+    permission_classes = []
+
+    def get(self, request, token):
+        profile = UserProfile.objects.filter(email_token=token).first()
+        if profile:
+            profile.email_verified = True
+            profile.email_token = None
+            profile.save()
+            messages.success(request, 'Email verified! You can now log in.')
+        else:
+            messages.error(request, 'Invalid or expired verification link.')
+        return redirect('login')
+
+
+class SavingsGoalListView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        wallet_id = request.session.get('wallet_id')
+        if not wallet_id:
+            return redirect('select_wallet')
+        wallet = Wallet.objects.filter(wallet_id=wallet_id, user=request.user).first()
+        if not wallet:
+            return redirect('select_wallet')
+        goals = SavingsGoal.objects.filter(wallet=wallet)
+        return Response({'wallet': wallet, 'goals': goals}, template_name='savings_goals.html')
+
+
+class CreateSavingsGoalView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        wallet_id = request.session.get('wallet_id')
+        if not wallet_id:
+            return redirect('select_wallet')
+        wallet = Wallet.objects.filter(wallet_id=wallet_id, user=request.user).first()
+        if not wallet:
+            return redirect('select_wallet')
+
+        serializer = SavingsGoalSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(wallet=wallet)
+            messages.success(request, 'Savings goal created!')
+        else:
+            messages.error(request, 'Invalid data. Please check your inputs.')
+        return redirect('savings_goals')
+
+
+class DeleteSavingsGoalView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, goal_id):
+        goal = SavingsGoal.objects.filter(goal_id=goal_id, wallet__user=request.user).first()
+        if goal:
+            goal.delete()
+        return redirect('savings_goals')

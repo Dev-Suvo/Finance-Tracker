@@ -78,6 +78,11 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.TemplateHTMLRenderer',
         'rest_framework.renderers.JSONRenderer',
     ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+        'rest_framework.parsers.JSONParser',
+    ],
 }
 
 AUTH_PASSWORD_VALIDATORS = [

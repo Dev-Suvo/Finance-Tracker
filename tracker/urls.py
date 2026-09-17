@@ -18,12 +18,17 @@ from .views import (
     BudgetListView,
     CreateBudgetView,
     DeleteBudgetView,
+    VerifyEmailView,
+    SavingsGoalListView,
+    CreateSavingsGoalView,
+    DeleteSavingsGoalView,
 )
 
 urlpatterns = [
     path('', LandingPageView.as_view(), name='landing'),
     path('login/', LoginPageView.as_view(), name='login'),
     path('register/', RegisterPageView.as_view(), name='register'),
+    path('verify-email/<str:token>/', VerifyEmailView.as_view(), name='verify_email'),
 
     path('home/', HomePageView.as_view(), name='home'),
 
@@ -48,4 +53,8 @@ urlpatterns = [
     path('budgets/', BudgetListView.as_view(), name='budgets'),
     path('budget/create/', CreateBudgetView.as_view(), name='create_budget'),
     path('budget/delete/<uuid:budget_id>/', DeleteBudgetView.as_view(), name='delete_budget'),
+
+    path('savings-goals/', SavingsGoalListView.as_view(), name='savings_goals'),
+    path('savings-goal/create/', CreateSavingsGoalView.as_view(), name='create_savings_goal'),
+    path('savings-goal/delete/<uuid:goal_id>/', DeleteSavingsGoalView.as_view(), name='delete_savings_goal'),
 ]

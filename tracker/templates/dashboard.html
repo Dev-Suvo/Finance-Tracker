@@ -23,6 +23,9 @@
                 <a href="{% url 'budgets' %}">
                     <i class="bi bi-wallet2"></i> Budgets
                 </a>
+                <a href="{% url 'savings_goals' %}">
+                    <i class="bi bi-bullseye"></i> Savings Goals
+                </a>
                 <a href="{% url 'select_wallet' %}">
                     <i class="bi bi-list-ul"></i> Select Wallet
                 </a>
@@ -155,7 +158,7 @@
                     <svg viewBox="0 0 36 36" width="160" height="160">
                         <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f1f5f9" stroke-width="3.5"/>
                         {% for cat in expense_breakdown %}
-                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="{{ cat.color }}"stroke-width="3.5" stroke-dasharray="{{ cat.dasharray }}"stroke-dashoffset="{{ cat.dashoffset }}"transform="rotate(-90 18 18)"/>
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="{{ cat.color }}" stroke-width="3.5" stroke-dasharray="{{ cat.dasharray }}" stroke-dashoffset="{{ cat.dashoffset }}" transform="rotate(-90 18 18)"/>
                         {% endfor %}
                     </svg>
                     <div class="pie-center-text">
@@ -182,7 +185,7 @@
                     <svg viewBox="0 0 36 36" width="160" height="160">
                         <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f1f5f9" stroke-width="3.5"/>
                         {% for cat in income_breakdown %}
-                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="{{ cat.color }}"stroke-width="3.5" stroke-dasharray="{{ cat.dasharray }}"stroke-dashoffset="{{ cat.dashoffset }}"transform="rotate(-90 18 18)"/>
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="{{ cat.color }}" stroke-width="3.5" stroke-dasharray="{{ cat.dasharray }}" stroke-dashoffset="{{ cat.dashoffset }}" transform="rotate(-90 18 18)"/>
                         {% endfor %}
                     </svg>
                     <div class="pie-center-text">

@@ -76,11 +76,23 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Password</label>
-                        <input type="password" name="password" class="form-control" placeholder="Create password" required>
+                        <input type="password" name="password" id="reg-password" class="form-control" placeholder="Create password" required>
+                        <div class="pw-bar-wrap">
+                            <div class="pw-bar" id="pw-bar"></div>
+                            <i class="bi bi-check-circle-fill pw-done" id="pw-done"></i>
+                        </div>
+                        <div class="pw-rules" id="pw-rules">
+                            <span class="pw-rule" data-i="0">6+ characters</span>
+                            <span class="pw-rule" data-i="1">Lowercase</span>
+                            <span class="pw-rule" data-i="2">Uppercase</span>
+                            <span class="pw-rule" data-i="3">Number</span>
+                            <span class="pw-rule" data-i="4">Symbol</span>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Confirm Password</label>
-                        <input type="password" name="confirm_password" class="form-control" placeholder="Confirm password" required>
+                        <input type="password" name="confirm_password" id="reg-confirm" class="form-control" placeholder="Confirm password" required>
+                        <div class="pw-match" id="pw-match" style="display:none;"></div>
                     </div>
                 </div>
 
@@ -116,6 +128,46 @@ document.addEventListener('DOMContentLoaded', function () {
             this.value = this.value.replace(/\D/g, '').slice(0, 10);
         });
     }
+
+    const pw = document.getElementById('reg-password');
+    const confirm = document.getElementById('reg-confirm');
+    const bar = document.getElementById('pw-bar');
+    const done = document.getElementById('pw-done');
+    const matchEl = document.getElementById('pw-match');
+
+    const rules = [
+        v => v.length >= 6,
+        v => /[a-z]/.test(v),
+        v => /[A-Z]/.test(v),
+        v => /\d/.test(v),
+        v => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(v),
+    ];
+
+    function updateChecks() {
+        const v = pw.value;
+        let passed = 0;
+        rules.forEach((fn, i) => { if (fn(v)) passed++; });
+        const pct = v ? (passed / rules.length * 100) : 0;
+        bar.style.width = pct + '%';
+        bar.className = 'pw-bar pw-bar-' + passed;
+        done.style.display = passed === rules.length ? 'block' : 'none';
+        document.querySelectorAll('.pw-rule').forEach((el, i) => {
+            el.className = 'pw-rule ' + (rules[i](v) ? 'pw-rule-on' : (v ? 'pw-rule-fail' : ''));
+        });
+    }
+
+    function updateMatch() {
+        if (!confirm.value) { matchEl.style.display = 'none'; return; }
+        const ok = pw.value === confirm.value;
+        matchEl.style.display = 'block';
+        matchEl.className = 'pw-match ' + (ok ? 'pw-match-ok' : 'pw-match-fail');
+        matchEl.innerHTML = ok
+            ? '<i class="bi bi-check-circle-fill"></i> Passwords match'
+            : '<i class="bi bi-x-circle"></i> Passwords do not match';
+    }
+
+    if (pw) pw.addEventListener('input', function() { updateChecks(); updateMatch(); });
+    if (confirm) confirm.addEventListener('input', updateMatch);
 });
 </script>
 {% endblock %}
