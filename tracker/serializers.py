@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 import re
-from .models import UserProfile, Wallet, Transaction
+from .models import UserProfile, Wallet, Transaction, Budget
 
 
 class UserRegisterSerializer(serializers.Serializer):
@@ -41,24 +41,13 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = [
-            'transaction_id',
-            'wallet',
-            'transaction_type',
-            'category',
-            'description',
-            'amount',
-            'created_at',
-            'creation_time',
-            'updated_at',
-            'updation_time',
+            'transaction_id', 'wallet', 'transaction_type', 'category',
+            'description', 'amount', 'created_at', 'creation_time',
+            'updated_at', 'updation_time',
         ]
         read_only_fields = [
-            'transaction_id',
-            'wallet',
-            'created_at',
-            'creation_time',
-            'updated_at',
-            'updation_time',
+            'transaction_id', 'wallet', 'created_at', 'creation_time',
+            'updated_at', 'updation_time',
         ]
 
     def validate_amount(self, value):
@@ -76,4 +65,16 @@ class TransactionSerializer(serializers.ModelSerializer):
         valid_categories = [choice[0] for choice in Transaction.CATEGORY_CHOICES]
         if value not in valid_categories:
             raise serializers.ValidationError('Invalid category')
+        return value
+
+
+class BudgetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Budget
+        fields = ['budget_id', 'wallet', 'category', 'limit_amount', 'period']
+        read_only_fields = ['budget_id', 'wallet']
+
+    def validate_limit_amount(self, value):
+        if value is None or value <= 0:
+            raise serializers.ValidationError('Budget limit must be greater than 0')
         return value

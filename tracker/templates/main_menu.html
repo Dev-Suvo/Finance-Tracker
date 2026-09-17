@@ -20,8 +20,8 @@
                 <a href="{% url 'dashboard' %}">
                     <i class="bi bi-graph-up"></i> Dashboard
                 </a>
-                <a href="{% url 'create_wallet' %}">
-                    <i class="bi bi-wallet2"></i> Create Wallet
+                <a href="{% url 'budgets' %}">
+                    <i class="bi bi-wallet2"></i> Budgets
                 </a>
                 <a href="{% url 'select_wallet' %}">
                     <i class="bi bi-list-ul"></i> Select Wallet
@@ -63,6 +63,14 @@
                     <div class="mt-icon"><i class="bi bi-graph-up"></i></div>
                     <h3>Dashboard</h3>
                     <p>View summary, transactions and insights</p>
+                </div>
+                <i class="fa-solid fa-chevron-right mt-arrow"></i>
+            </a>
+            <a href="{% url 'budgets' %}" class="menu-tile">
+                <div class="menu-tile-left">
+                    <div class="mt-icon"><i class="bi bi-wallet2"></i></div>
+                    <h3>Budgets</h3>
+                    <p>Set spending limits and track budgets</p>
                 </div>
                 <i class="fa-solid fa-chevron-right mt-arrow"></i>
             </a>

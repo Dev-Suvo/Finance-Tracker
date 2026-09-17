@@ -13,6 +13,11 @@ from .views import (
     AllTransactionsView,
     UpdateTransactionView,
     DeleteTransactionView,
+    ExportCSVView,
+    ExportPDFView,
+    BudgetListView,
+    CreateBudgetView,
+    DeleteBudgetView,
 )
 
 urlpatterns = [
@@ -36,4 +41,11 @@ urlpatterns = [
     path('logout/', LogoutPageView.as_view(), name='logout'),
 
     path('all-transactions/', AllTransactionsView.as_view(), name='all_transactions'),
+
+    path('export/csv/', ExportCSVView.as_view(), name='export_csv'),
+    path('export/pdf/', ExportPDFView.as_view(), name='export_pdf'),
+
+    path('budgets/', BudgetListView.as_view(), name='budgets'),
+    path('budget/create/', CreateBudgetView.as_view(), name='create_budget'),
+    path('budget/delete/<uuid:budget_id>/', DeleteBudgetView.as_view(), name='delete_budget'),
 ]

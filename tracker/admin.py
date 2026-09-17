@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Wallet, Transaction, UserProfile
+from .models import Wallet, Transaction, UserProfile, Budget
 
 
 @admin.register(Wallet)
@@ -23,3 +23,11 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_display = ['user', 'phone_number', 'created_at']
     search_fields = ['user__username', 'phone_number']
     readonly_fields = ['created_at', 'creation_time', 'updated_at', 'updation_time']
+
+
+@admin.register(Budget)
+class BudgetAdmin(admin.ModelAdmin):
+    list_display = ['wallet', 'category', 'limit_amount', 'period', 'created_at']
+    list_filter = ['category', 'period']
+    search_fields = ['wallet__wallet_name']
+    readonly_fields = ['budget_id', 'created_at', 'creation_time', 'updated_at', 'updation_time']

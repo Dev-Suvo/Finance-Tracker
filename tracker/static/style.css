@@ -20,6 +20,10 @@
     --green-faint:   #d1fae5;
     --red:           #ef4444;
     --red-faint:     #fee2e2;
+    --yellow:        #f59e0b;
+    --yellow-faint:  #fef3c7;
+    --blue:          #3b82f6;
+    --blue-faint:    #dbeafe;
     --sidebar-bg:    #0f172a;
     --sidebar-dark:  #020617;
     --body-bg:       #f1f5f9;
@@ -98,6 +102,9 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     cursor: pointer;
     transition: all .2s ease;
     text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .btn-primary {
@@ -167,6 +174,178 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
+}
+
+form.filter-row {
+    display: flex !important;
+    gap: 10px;
+    align-items: end;
+    padding: 14px 20px;
+    flex-wrap: nowrap;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    margin-bottom: 16px;
+}
+
+form.filter-row .form-group {
+    margin: 0 !important;
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+form.filter-row .form-group.search-field {
+    flex: 1 1 0;
+    min-width: 160px;
+}
+
+form.filter-row .form-group label {
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    display: block;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    white-space: nowrap;
+}
+
+form.filter-row .form-control {
+    padding: 9px 12px;
+    font-size: 13px;
+    border-radius: var(--radius-sm);
+    height: 38px;
+    width: auto;
+}
+
+form.filter-row select.form-control {
+    min-width: 110px;
+}
+
+form.filter-row input[type="date"].form-control {
+    min-width: 130px;
+}
+
+form.filter-row input[type="text"].form-control {
+    width: 100%;
+}
+
+form.filter-row input[type="number"].form-control {
+    min-width: 120px;
+}
+
+form.filter-row .btn {
+    height: 38px;
+    padding: 0 16px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.budget-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 18px;
+}
+
+.budget-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 22px;
+    position: relative;
+    transition: all .25s;
+}
+
+.budget-card:hover {
+    border-color: var(--purple);
+    box-shadow: 0 8px 24px rgba(124,58,237,.08);
+}
+
+.budget-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.budget-card-cat {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-main);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.budget-card-period {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 3px;
+}
+
+.budget-card-delete {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--red-faint);
+    color: var(--red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    transition: all .2s;
+}
+
+.budget-card-delete:hover {
+    background: var(--red);
+    color: white;
+}
+
+.budget-card-amounts {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.budget-card-amounts .label {
+    color: var(--text-muted);
+}
+
+.budget-card-amounts .value {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.budget-progress-track {
+    width: 100%;
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.budget-progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width .4s ease;
+}
+
+.budget-card-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+.budget-card-footer .pct {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.budget-card-footer .remaining {
+    font-weight: 700;
 }
 
 
@@ -277,6 +456,8 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     font-weight: 800;
     line-height: 1.15;
     color: var(--text-main);
+    overflow: hidden;
+    word-wrap: break-word;
 }
 
 .hero-left h1 span { color: var(--purple); }
@@ -540,6 +721,8 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     font-size: 26px;
     font-weight: 700;
     color: var(--text-main);
+    overflow: hidden;
+    word-wrap: break-word;
 }
 
 .auth-card .auth-emoji {
@@ -793,12 +976,17 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     align-items: center;
     justify-content: space-between;
     margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
 .page-header-left h1 {
     font-size: 22px;
     font-weight: 700;
     color: var(--text-main);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .page-header-left p {
@@ -842,6 +1030,9 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     font-weight: 700;
     color: var(--text-main);
     margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .stats-card .sc-icon {
@@ -872,6 +1063,7 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     justify-content: space-between;
     align-items: center;
     width: 100%;
+    overflow: hidden;
 }
 
 .welcome-left {
@@ -906,6 +1098,9 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     font-weight: 700;
     color: var(--text-main);
     margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .wallet-summary { text-align: right; }
@@ -944,6 +1139,7 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     margin-bottom: 28px;
     overflow: hidden;
     position: relative;
+    gap: 24px;
 }
 
 .home-hero::after {
@@ -984,6 +1180,8 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     font-weight: 700;
     color: white;
     line-height: 1.25;
+    overflow: hidden;
+    word-wrap: break-word;
 }
 
 .home-hero-text h2 span { color: #a78bfa; }
@@ -1119,6 +1317,7 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     transition: all .25s;
     border: 1.5px solid transparent;
     text-align: left;
+    overflow: hidden;
 }
 
 .wallet-card:hover {
@@ -1160,12 +1359,18 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     font-weight: 700;
     color: var(--text-main);
     margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .wallet-balance {
     font-size: 24px;
     font-weight: 700;
     color: var(--green);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .wallet-card .wc-arrow {
@@ -1259,6 +1464,9 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     font-size: 16px;
     font-weight: 700;
     margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .menu-tile p {
@@ -1343,6 +1551,7 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
     overflow: hidden;
+    overflow-x: auto;
 }
 
 .section-header {
@@ -1351,6 +1560,10 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     justify-content: space-between;
     padding: 20px 24px;
     border-bottom: 1px solid var(--border);
+}
+
+.section-header:last-child {
+    border-bottom: none;
 }
 
 .section-header h2 { font-size: 16px; font-weight: 700; }
@@ -1369,6 +1582,7 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: .05em;
+    white-space: nowrap;
 }
 
 .table td {
@@ -1376,6 +1590,10 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     font-size: 14px;
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .table tbody tr:last-child td { border-bottom: none; }
@@ -1389,6 +1607,9 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     font-weight: 700;
     padding: 4px 10px;
     border-radius: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .tx-type-badge.income { background: var(--green-faint); color: var(--green); }
