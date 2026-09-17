@@ -160,6 +160,24 @@ button { cursor: pointer; font-family: 'Poppins', sans-serif; }
     color: var(--text-main);
     outline: none;
     transition: border-color .2s, box-shadow .2s;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 38px;
+}
+
+select.form-control {
+    cursor: pointer;
+}
+
+select.form-control option {
+    padding: 10px;
+    font-size: 14px;
+    background: white;
+    color: var(--text-main);
 }
 
 .form-control::placeholder { color: #bcc0c8; }
@@ -968,7 +986,8 @@ form.filter-row .btn {
     flex: 1;
     padding: 28px 32px;
     min-width: 0;
-    overflow-y: auto;
+    overflow-x: hidden;
+    word-wrap: break-word;
 }
 
 .page-header {
@@ -1005,6 +1024,18 @@ form.filter-row .btn {
     grid-template-columns: repeat(3, 1fr);
     gap: 18px;
     margin-bottom: 24px;
+}
+
+@media (max-width: 1000px) {
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .stats-card {
@@ -1571,6 +1602,7 @@ form.filter-row .btn {
 .table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: auto;
 }
 
 .table th {
@@ -1590,10 +1622,6 @@ form.filter-row .btn {
     font-size: 14px;
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
-    max-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .table tbody tr:last-child td { border-bottom: none; }
@@ -1702,6 +1730,7 @@ form.filter-row .btn {
     padding: 36px 40px;
     box-shadow: var(--shadow-md);
     max-width: 640px;
+    width: 100%;
 }
 
 .create-card h1 {
@@ -1735,6 +1764,7 @@ form.filter-row .btn {
 @media (max-width: 900px) {
     .stats-grid { grid-template-columns: 1fr 1fr; }
     .menu-tiles { grid-template-columns: 1fr; }
+    .overview-grid { grid-template-columns: 1fr !important; }
 }
 
 @media (max-width: 768px) {
@@ -1751,4 +1781,8 @@ form.filter-row .btn {
     .home-hero-card { display: none; }
     .form-row { grid-template-columns: 1fr; }
     .social-btns { grid-template-columns: 1fr; }
+    .create-card { padding: 24px 20px; }
+    .auth-card { padding: 32px 24px; }
+    .wallet-grid { grid-template-columns: 1fr; }
+    .budget-grid { grid-template-columns: 1fr; }
 }
