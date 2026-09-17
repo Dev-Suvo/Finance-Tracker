@@ -1,16 +1,15 @@
 import csv
 import io
-from datetime import datetime
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
+from django.contrib.auth.views import PasswordResetView
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.db.models import Sum, Q
 from django.http import HttpResponse
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
 from reportlab.lib.pagesizes import A4
@@ -213,7 +212,6 @@ class CreateTransactionPageView(APIView):
             messages.error(request, 'Enter a valid amount')
             return redirect('create_transaction')
 
-        data = serializer.validated_data
         transaction = serializer.save(wallet=wallet)
 
         if transaction.transaction_type == 'Income':
@@ -385,7 +383,7 @@ class UpdateTransactionView(APIView):
 class DeleteTransactionView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, transaction_id):
+    def post(self, request, transaction_id):
         transaction = Transaction.objects.filter(transaction_id=transaction_id, wallet__user=request.user).first()
         if transaction is None:
             return redirect('all_transactions')
@@ -563,14 +561,13 @@ class CreateBudgetView(APIView):
 class DeleteBudgetView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, budget_id):
+    def post(self, request, budget_id):
         budget = Budget.objects.filter(budget_id=budget_id, wallet__user=request.user).first()
         if budget:
             budget.delete()
         return redirect('budgets')
 
 
-from django.contrib.auth.views import PasswordResetView
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
