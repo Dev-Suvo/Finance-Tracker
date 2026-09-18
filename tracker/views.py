@@ -8,7 +8,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.views import PasswordResetView
 from django.contrib import messages
 from django.shortcuts import redirect
-from django.db.models import Sum, Q
+from django.db import models
+from django.db.models import Sum, Q, Subquery, OuterRef, F
 from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -128,6 +129,13 @@ class RegisterPageView(APIView):
 
         data = serializer.validated_data
         email_token = secrets.token_hex(32)
+
+        from django.contrib.auth.password_validation import validate_password
+        try:
+            validate_password(data['password'])
+        except Exception as e:
+            messages.error(request, str(e))
+            return redirect('register')
 
         user = User.objects.create_user(
             first_name=data['first_name'],
@@ -256,10 +264,9 @@ class CreateTransactionPageView(APIView):
         transaction = serializer.save(wallet=wallet)
 
         if transaction.transaction_type == 'Income':
-            wallet.balance += transaction.amount
+            Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + transaction.amount)
         else:
-            wallet.balance -= transaction.amount
-        wallet.save()
+            Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - transaction.amount)
 
         return redirect('dashboard')
 
@@ -282,7 +289,7 @@ class DashboardPageView(APIView):
         if wallet is None:
             return redirect('select_wallet')
 
-        transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at', '-creation_time', '-transaction_id',)[:3]
+        transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at', '-transaction_id',)[:3]
 
         income = Transaction.objects.filter(wallet=wallet, transaction_type='Income').aggregate(total=Sum('amount'))['total'] or 0
         expense = Transaction.objects.filter(wallet=wallet, transaction_type='Expense').aggregate(total=Sum('amount'))['total'] or 0
@@ -361,7 +368,7 @@ class AllTransactionsView(APIView):
             except (ValueError, TypeError):
                 pass
 
-        all_transactions = queryset.order_by('-created_at', '-creation_time', '-transaction_id',)
+        all_transactions = queryset.order_by('-created_at', '-transaction_id',)
 
         categories = [c[0] for c in Transaction.CATEGORY_CHOICES]
 
@@ -402,23 +409,20 @@ class UpdateTransactionView(APIView):
         data = serializer.validated_data
         wallet = transaction.wallet
 
+        old_amount = transaction.amount
         if transaction.transaction_type == 'Income':
-            wallet.balance -= transaction.amount
+            Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - old_amount)
         else:
-            wallet.balance += transaction.amount
+            Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + old_amount)
 
         if data['transaction_type'] == 'Income':
-            wallet.balance += data['amount']
+            Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + data['amount'])
         else:
-            wallet.balance -= data['amount']
+            Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - data['amount'])
 
-        wallet.save()
-
-        transaction.transaction_type = data['transaction_type']
-        transaction.description = data['description']
-        transaction.category = data['category']
-        transaction.amount = data['amount']
-        transaction.save()
+        serializer = TransactionSerializer(transaction, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
 
         return redirect('all_transactions')
 
@@ -433,11 +437,10 @@ class DeleteTransactionView(APIView):
 
         wallet = transaction.wallet
         if transaction.transaction_type == 'Income':
-            wallet.balance -= transaction.amount
+            Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - transaction.amount)
         else:
-            wallet.balance += transaction.amount
+            Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + transaction.amount)
 
-        wallet.save()
         transaction.delete()
         return redirect('all_transactions')
 
@@ -459,7 +462,7 @@ class ExportCSVView(APIView):
         if wallet is None:
             return redirect('select_wallet')
 
-        transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at', '-creation_time',)
+        transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at',)
 
         response = HttpResponse(content_type='text/csv')
         import re
@@ -476,7 +479,7 @@ class ExportCSVView(APIView):
                 tx.category,
                 tx.amount,
                 tx.created_at,
-                tx.creation_time,
+                tx.created_at.strftime('%H:%M'),
             ])
 
         return response
@@ -499,7 +502,7 @@ class ExportPDFView(APIView):
         if wallet is None:
             return redirect('select_wallet')
 
-        transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at', '-creation_time',)
+        transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at',)
 
         response = HttpResponse(content_type='application/pdf')
         import re
@@ -563,7 +566,30 @@ class BudgetListView(APIView):
         if wallet is None:
             return redirect('select_wallet')
 
+        from django.utils import timezone
+        from django.db.models import Sum
+        now = timezone.now()
+
         budgets = Budget.objects.filter(wallet=wallet)
+
+        monthly_expenses = Transaction.objects.filter(
+            wallet=wallet, transaction_type='Expense',
+            created_at__month=now.month, created_at__year=now.year,
+        ).values('category').annotate(total=Sum('amount'))
+        monthly_spent = {item['category']: item['total'] or 0 for item in monthly_expenses}
+
+        week_start = now - timezone.timedelta(days=now.weekday())
+        weekly_expenses = Transaction.objects.filter(
+            wallet=wallet, transaction_type='Expense',
+            created_at__gte=week_start.date(),
+        ).values('category').annotate(total=Sum('amount'))
+        weekly_spent = {item['category']: item['total'] or 0 for item in weekly_expenses}
+
+        for budget in budgets:
+            if budget.period == 'monthly':
+                budget._cached_spent = monthly_spent.get(budget.category, 0)
+            else:
+                budget._cached_spent = weekly_spent.get(budget.category, 0)
         expense_categories = [c[0] for c in Transaction.CATEGORY_CHOICES if c[0] not in ('Salary', 'Freelance', 'Stipend', 'Scholarship', 'Business Revenue')]
 
         context = {
@@ -697,7 +723,21 @@ class SavingsGoalListView(APIView):
         wallet = Wallet.objects.filter(wallet_id=wallet_id, user=request.user).first()
         if not wallet:
             return redirect('select_wallet')
-        goals = SavingsGoal.objects.filter(wallet=wallet)
+        from django.db.models import Sum, Subquery, OuterRef
+        deposits = SavingsGoalTransaction.objects.filter(
+            goal=OuterRef('pk'), transaction_type='Deposit'
+        ).values('goal').annotate(total=Sum('amount')).values('total')
+        withdrawals = SavingsGoalTransaction.objects.filter(
+            goal=OuterRef('pk'), transaction_type='Withdrawal'
+        ).values('goal').annotate(total=Sum('amount')).values('total')
+
+        goals = SavingsGoal.objects.filter(wallet=wallet).annotate(
+            _deposits=Subquery(deposits, output_field=models.DecimalField()),
+            _withdrawals=Subquery(withdrawals, output_field=models.DecimalField()),
+        )
+        for goal in goals:
+            goal._cached_saved = (goal._deposits or 0) - (goal._withdrawals or 0)
+
         return Response({'wallet': wallet, 'goals': goals}, template_name='savings_goals.html')
 
 
@@ -737,17 +777,6 @@ class DeleteSavingsGoalView(APIView):
 class SavingsGoalDetailView(APIView):
     renderer_classes = [TemplateHTMLRenderer]
     permission_classes = [IsAuthenticated]
-
-    def _get_wallet(self, request):
-        wallet_id = request.session.get('wallet_id')
-        if not wallet_id:
-            return None, None
-        try:
-            wallet = Wallet.objects.get(wallet_id=wallet_id, user=request.user)
-            goal = SavingsGoal.objects.filter(goal_id=goal_id, wallet=wallet).first()
-            return wallet, goal
-        except Wallet.DoesNotExist:
-            return None, None
 
     def get(self, request, goal_id):
         wallet_id = request.session.get('wallet_id')
@@ -802,6 +831,8 @@ class DepositToGoalView(APIView):
         from decimal import Decimal
         dec_amount = Decimal(str(amount))
 
+        previous_saved = goal.saved_amount
+
         SavingsGoalTransaction.objects.create(
             goal=goal,
             transaction_type='Deposit',
@@ -809,7 +840,7 @@ class DepositToGoalView(APIView):
             description=description or 'Deposit to goal',
         )
 
-        if goal.saved_amount >= goal.target_amount:
+        if previous_saved < goal.target_amount and goal.saved_amount >= goal.target_amount:
             try:
                 from django.core.mail import EmailMultiAlternatives
                 from django.template.loader import render_to_string

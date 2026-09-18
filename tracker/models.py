@@ -4,10 +4,8 @@ import uuid
 
 
 class BaseModel(models.Model):
-    created_at = models.DateField(auto_now_add=True)
-    creation_time = models.TimeField(auto_now_add=True)
-    updated_at = models.DateField(auto_now=True)
-    updation_time = models.TimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         abstract = True
@@ -109,6 +107,8 @@ class Budget(BaseModel):
 
     @property
     def spent(self):
+        if hasattr(self, '_cached_spent'):
+            return self._cached_spent
         return self.get_spent()
 
     @property
@@ -149,6 +149,8 @@ class SavingsGoal(BaseModel):
 
     @property
     def saved_amount(self):
+        if hasattr(self, '_cached_saved'):
+            return self._cached_saved
         from django.db.models import Sum
         deposits = self.goal_transactions.filter(transaction_type='Deposit').aggregate(
             total=Sum('amount')

@@ -42,12 +42,10 @@ class TransactionSerializer(serializers.ModelSerializer):
         model = Transaction
         fields = [
             'transaction_id', 'wallet', 'transaction_type', 'category',
-            'description', 'amount', 'created_at', 'creation_time',
-            'updated_at', 'updation_time',
+            'description', 'amount', 'created_at', 'updated_at',
         ]
         read_only_fields = [
-            'transaction_id', 'wallet', 'created_at', 'creation_time',
-            'updated_at', 'updation_time',
+            'transaction_id', 'wallet', 'created_at', 'updated_at',
         ]
 
     INCOME_CATEGORIES = {'Salary', 'Freelance', 'Stipend', 'Scholarship', 'Business Revenue'}

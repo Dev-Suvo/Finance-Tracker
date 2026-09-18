@@ -144,11 +144,11 @@
                         </td>
                         <td style="font-size:12px;">
                             <div style="font-weight:600;color:var(--text-main);">{{ transaction.created_at|date:"d M Y" }}</div>
-                            <div style="color:#94a3b8;margin-top:2px;">{{ transaction.creation_time|time:"h:i A" }}</div>
+                            <div style="color:#94a3b8;margin-top:2px;">{{ transaction.created_at|time:"h:i A" }}</div>
                         </td>
                         <td style="font-size:12px;">
                             <div style="font-weight:600;color:var(--text-main);">{{ transaction.updated_at|date:"d M Y" }}</div>
-                            <div style="color:#94a3b8;margin-top:2px;">{{ transaction.updation_time|time:"h:i A" }}</div>
+                            <div style="color:#94a3b8;margin-top:2px;">{{ transaction.updated_at|time:"h:i A" }}</div>
                         </td>
                         <td style="white-space:nowrap;">
                             <div style="display:flex;gap:12px;justify-content:center;align-items:center;">

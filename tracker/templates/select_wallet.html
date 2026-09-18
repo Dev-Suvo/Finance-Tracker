@@ -41,7 +41,7 @@
         {% if wallets %}
         <div class="select-wallet-grid">
             {% for wallet in wallets %}
-            <form method="POST">
+            <form method="POST" action="{% url 'select_wallet' %}">
                 {% csrf_token %}
                 <input type="hidden" name="wallet_id" value="{{ wallet.wallet_id }}">
                 <button type="submit" style="width:100%;border:none;background:none;text-align:left;">

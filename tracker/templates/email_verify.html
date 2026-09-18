@@ -15,7 +15,7 @@
                     </p>
                     <table cellpadding="0" cellspacing="0" style="width:100%;">
                         <tr><td align="center">
-                            <a href="{{ protocol }}://{{ domain }}/verify-email/{{ token }}/" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:14px 36px;border-radius:10px;font-size:14px;font-weight:600;">
+                            <a href="{{ protocol }}://{{ domain }}{% url 'verify_email' token=token %}" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:14px 36px;border-radius:10px;font-size:14px;font-weight:600;">
                                 Verify Email
                             </a>
                         </td></tr>
