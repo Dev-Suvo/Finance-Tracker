@@ -799,20 +799,34 @@ class DepositToGoalView(APIView):
             messages.error(request, 'Enter a valid amount greater than 0.')
             return redirect('savings_goal_detail', goal_id=goal_id)
 
-        if amount > wallet.balance:
-            messages.error(request, 'Insufficient wallet balance for this deposit.')
-            return redirect('savings_goal_detail', goal_id=goal_id)
-
         from decimal import Decimal
+        dec_amount = Decimal(str(amount))
+
         SavingsGoalTransaction.objects.create(
             goal=goal,
             transaction_type='Deposit',
-            amount=Decimal(str(amount)),
+            amount=dec_amount,
             description=description or 'Deposit to goal',
         )
 
-        wallet.balance -= Decimal(str(amount))
-        wallet.save()
+        if goal.saved_amount >= goal.target_amount:
+            try:
+                from django.core.mail import EmailMultiAlternatives
+                from django.template.loader import render_to_string
+                html = render_to_string('email_goal_complete.html', {
+                    'user': request.user,
+                    'goal': goal,
+                })
+                msg = EmailMultiAlternatives(
+                    f'Congratulations! You reached your goal: {goal.name}',
+                    f'You saved Rs. {goal.saved_amount} toward {goal.name}.',
+                    f'FinanceTracker <{settings.EMAIL_HOST_USER}>',
+                    [request.user.email]
+                )
+                msg.attach_alternative(html, 'text/html')
+                msg.send()
+            except Exception:
+                pass
 
         messages.success(request, f'Deposited Rs. {amount} to {goal.name}.')
         return redirect('savings_goal_detail', goal_id=goal_id)
@@ -847,19 +861,17 @@ class WithdrawFromGoalView(APIView):
             return redirect('savings_goal_detail', goal_id=goal_id)
 
         from decimal import Decimal
-        if Decimal(str(amount)) > goal.saved_amount:
+        dec_amount = Decimal(str(amount))
+        if dec_amount > goal.saved_amount:
             messages.error(request, 'Insufficient savings in this goal.')
             return redirect('savings_goal_detail', goal_id=goal_id)
 
         SavingsGoalTransaction.objects.create(
             goal=goal,
             transaction_type='Withdrawal',
-            amount=Decimal(str(amount)),
+            amount=dec_amount,
             description=description or 'Withdrawal from goal',
         )
-
-        wallet.balance += Decimal(str(amount))
-        wallet.save()
 
         messages.success(request, f'Withdrew Rs. {amount} from {goal.name}.')
         return redirect('savings_goal_detail', goal_id=goal_id)
@@ -875,15 +887,6 @@ class DeleteGoalTransactionView(APIView):
             return redirect('savings_goals')
 
         goal = tx.goal
-        wallet = goal.wallet
-
-        from decimal import Decimal
-        if tx.transaction_type == 'Deposit':
-            wallet.balance += tx.amount
-        else:
-            wallet.balance -= tx.amount
-        wallet.save()
-
         tx.delete()
         messages.success(request, 'Transaction deleted.')
         return redirect('savings_goal_detail', goal_id=goal.goal_id)
