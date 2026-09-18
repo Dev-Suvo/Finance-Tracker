@@ -108,9 +108,9 @@
 
                         <div class="budget-card-footer">
                             <span class="pct">{{ goal.percentage }}% achieved</span>
-                            <span class="remaining" style="color:var(--green);">
-                                {% if goal.remaining > 0 %}Rs. {{ goal.remaining }} to go{% else %}Goal reached!{% endif %}
-                            </span>
+                            <a href="{% url 'savings_goal_detail' goal.goal_id %}" class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px;">
+                                <i class="bi bi-piggy-bank"></i> Open
+                            </a>
                         </div>
                     </div>
                     {% endfor %}

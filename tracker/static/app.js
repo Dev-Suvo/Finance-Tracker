@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const typeBtns = document.querySelectorAll('.type-btn');
     const typeInput = document.getElementById('transaction_type');
+
+    if (!typeBtns.length || !typeInput) return;
+
     const categorySelect = document.getElementById('category');
 
     const incomeCategories = [
@@ -52,32 +55,28 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 }
 
-    if (typeBtns.length && typeInput) {
+    typeBtns.forEach(function (btn) {
 
-        typeBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
 
-            btn.addEventListener('click', function () {
-
-                typeBtns.forEach(function (b) {
-                    b.classList.remove('active');
-                });
-
-                btn.classList.add('active');
-
-                const type = btn.dataset.value;
-
-                typeInput.value = type;
-
-                if (type === 'Income') {
-                    loadCategories(incomeCategories);
-                } else {
-                    loadCategories(expenseCategories);
-                }
-
+            typeBtns.forEach(function (b) {
+                b.classList.remove('active');
             });
+
+            btn.classList.add('active');
+
+            const type = btn.dataset.value;
+
+            typeInput.value = type;
+
+            if (type === 'Income') {
+                loadCategories(incomeCategories);
+            } else {
+                loadCategories(expenseCategories);
+            }
 
         });
 
-    }
+    });
 
 });

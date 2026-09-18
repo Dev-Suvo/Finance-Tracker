@@ -116,6 +116,10 @@ class Budget(BaseModel):
         return self.limit_amount - self.spent
 
     @property
+    def remaining_abs(self):
+        return abs(self.remaining)
+
+    @property
     def percentage(self):
         if self.limit_amount == 0:
             return 0
@@ -146,23 +150,13 @@ class SavingsGoal(BaseModel):
     @property
     def saved_amount(self):
         from django.db.models import Sum
-        from django.utils import timezone
-        now = timezone.now()
-
-        income_total = Transaction.objects.filter(
-            wallet=self.wallet,
-            transaction_type='Income',
-        )
-
-        if self.period == 'weekly':
-            week_start = now - timezone.timedelta(days=now.weekday())
-            income_total = income_total.filter(created_at__gte=week_start.date())
-        elif self.period == 'monthly':
-            income_total = income_total.filter(created_at__month=now.month, created_at__year=now.year)
-        elif self.period == 'yearly':
-            income_total = income_total.filter(created_at__year=now.year)
-
-        return income_total.aggregate(total=Sum('amount'))['total'] or 0
+        deposits = self.goal_transactions.filter(transaction_type='Deposit').aggregate(
+            total=Sum('amount')
+        )['total'] or 0
+        withdrawals = self.goal_transactions.filter(transaction_type='Withdrawal').aggregate(
+            total=Sum('amount')
+        )['total'] or 0
+        return deposits - withdrawals
 
     @property
     def percentage(self):
@@ -174,3 +168,22 @@ class SavingsGoal(BaseModel):
     def remaining(self):
         remaining = self.target_amount - self.saved_amount
         return max(remaining, 0)
+
+
+class SavingsGoalTransaction(BaseModel):
+    TYPE_CHOICES = (
+        ('Deposit', 'Deposit'),
+        ('Withdrawal', 'Withdrawal'),
+    )
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    goal = models.ForeignKey(SavingsGoal, on_delete=models.CASCADE, related_name='goal_transactions')
+    transaction_type = models.CharField(max_length=12, choices=TYPE_CHOICES)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    description = models.CharField(max_length=200, blank=True, default='')
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.transaction_type}: Rs. {self.amount} for {self.goal.name}"

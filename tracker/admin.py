@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Wallet, Transaction, UserProfile, Budget, SavingsGoal
+from .models import Wallet, Transaction, UserProfile, Budget, SavingsGoal, SavingsGoalTransaction
 
 
 @admin.register(Wallet)
@@ -40,3 +40,11 @@ class SavingsGoalAdmin(admin.ModelAdmin):
     list_filter = ['period', 'is_active']
     search_fields = ['name', 'wallet__wallet_name']
     readonly_fields = ['goal_id', 'created_at', 'creation_time', 'updated_at', 'updation_time']
+
+
+@admin.register(SavingsGoalTransaction)
+class SavingsGoalTransactionAdmin(admin.ModelAdmin):
+    list_display = ['goal', 'transaction_type', 'amount', 'description', 'created_at']
+    list_filter = ['transaction_type', 'created_at']
+    search_fields = ['goal__name', 'description']
+    readonly_fields = ['id', 'created_at', 'creation_time', 'updated_at', 'updation_time']

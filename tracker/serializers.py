@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 import re
-from .models import UserProfile, Wallet, Transaction, Budget, SavingsGoal
+from .models import UserProfile, Wallet, Transaction, Budget, SavingsGoal, SavingsGoalTransaction
 
 
 class UserRegisterSerializer(serializers.Serializer):
@@ -50,6 +50,18 @@ class TransactionSerializer(serializers.ModelSerializer):
             'updated_at', 'updation_time',
         ]
 
+    INCOME_CATEGORIES = {'Salary', 'Freelance', 'Stipend', 'Scholarship', 'Business Revenue'}
+    EXPENSE_CATEGORIES = {'Food', 'Transport', 'Shopping', 'Bills', 'Subscription', 'Other'}
+
+    def validate(self, attrs):
+        tx_type = attrs.get('transaction_type')
+        category = attrs.get('category')
+        if tx_type == 'Income' and category not in self.INCOME_CATEGORIES:
+            raise serializers.ValidationError({'category': f'"{category}" is not a valid income category'})
+        if tx_type == 'Expense' and category not in self.EXPENSE_CATEGORIES:
+            raise serializers.ValidationError({'category': f'"{category}" is not a valid expense category'})
+        return attrs
+
     def validate_amount(self, value):
         if value is None or value <= 0:
             raise serializers.ValidationError('Enter a valid amount')
@@ -79,6 +91,12 @@ class BudgetSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Budget limit must be greater than 0')
         return value
 
+    def validate_period(self, value):
+        valid = [choice[0] for choice in Budget.PERIOD_CHOICES]
+        if value not in valid:
+            raise serializers.ValidationError(f'Period must be one of: {", ".join(valid)}')
+        return value
+
 
 class SavingsGoalSerializer(serializers.ModelSerializer):
     class Meta:
@@ -89,4 +107,28 @@ class SavingsGoalSerializer(serializers.ModelSerializer):
     def validate_target_amount(self, value):
         if value is None or value <= 0:
             raise serializers.ValidationError('Target amount must be greater than 0')
+        return value
+
+    def validate_period(self, value):
+        valid = [choice[0] for choice in SavingsGoal.PERIOD_CHOICES]
+        if value not in valid:
+            raise serializers.ValidationError(f'Period must be one of: {", ".join(valid)}')
+        return value
+
+
+class SavingsGoalTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavingsGoalTransaction
+        fields = ['id', 'goal', 'transaction_type', 'amount', 'description', 'created_at']
+        read_only_fields = ['id', 'goal', 'created_at']
+
+    def validate_amount(self, value):
+        if value is None or value <= 0:
+            raise serializers.ValidationError('Amount must be greater than 0')
+        return value
+
+    def validate_transaction_type(self, value):
+        valid = [choice[0] for choice in SavingsGoalTransaction.TYPE_CHOICES]
+        if value not in valid:
+            raise serializers.ValidationError(f'Type must be one of: {", ".join(valid)}')
         return value

@@ -111,7 +111,7 @@
                         <div class="budget-card-footer">
                             <span class="pct">{{ budget.percentage }}% used</span>
                             <span class="remaining" style="color:{% if budget.remaining < 0 %}var(--red){% else %}var(--green){% endif %};">
-                                {% if budget.remaining < 0 %}Over by Rs. {{ budget.remaining|cut:'-' }}{% else %}Rs. {{ budget.remaining }} left{% endif %}
+                                {% if budget.remaining < 0 %}Over by Rs. {{ budget.remaining_abs }}{% else %}Rs. {{ budget.remaining }} left{% endif %}
                             </span>
                         </div>
                     </div>

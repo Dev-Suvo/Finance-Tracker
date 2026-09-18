@@ -22,6 +22,10 @@ from .views import (
     SavingsGoalListView,
     CreateSavingsGoalView,
     DeleteSavingsGoalView,
+    SavingsGoalDetailView,
+    DepositToGoalView,
+    WithdrawFromGoalView,
+    DeleteGoalTransactionView,
 )
 
 urlpatterns = [
@@ -57,4 +61,8 @@ urlpatterns = [
     path('savings-goals/', SavingsGoalListView.as_view(), name='savings_goals'),
     path('savings-goal/create/', CreateSavingsGoalView.as_view(), name='create_savings_goal'),
     path('savings-goal/delete/<uuid:goal_id>/', DeleteSavingsGoalView.as_view(), name='delete_savings_goal'),
+    path('savings-goal/<uuid:goal_id>/', SavingsGoalDetailView.as_view(), name='savings_goal_detail'),
+    path('savings-goal/<uuid:goal_id>/deposit/', DepositToGoalView.as_view(), name='deposit_to_goal'),
+    path('savings-goal/<uuid:goal_id>/withdraw/', WithdrawFromGoalView.as_view(), name='withdraw_from_goal'),
+    path('savings-goal/transaction/<uuid:tx_id>/delete/', DeleteGoalTransactionView.as_view(), name='delete_goal_transaction'),
 ]

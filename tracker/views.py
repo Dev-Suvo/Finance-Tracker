@@ -17,7 +17,7 @@ from rest_framework.renderers import TemplateHTMLRenderer
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
-from .models import Wallet, Transaction, UserProfile, Budget, SavingsGoal
+from .models import Wallet, Transaction, UserProfile, Budget, SavingsGoal, SavingsGoalTransaction
 from .serializers import UserRegisterSerializer, TransactionSerializer, BudgetSerializer, SavingsGoalSerializer
 
 
@@ -123,12 +123,7 @@ class RegisterPageView(APIView):
         serializer = UserRegisterSerializer(data=request.data)
 
         if not serializer.is_valid():
-            for error in serializer.errors.values():
-                if isinstance(error, list):
-                    for msg in error:
-                        messages.error(request, msg if isinstance(msg, str) else str(msg))
-                else:
-                    messages.error(request, str(error))
+            messages.error(request, 'Please fix the errors below and try again.')
             return redirect('register')
 
         data = serializer.validated_data
@@ -291,6 +286,7 @@ class DashboardPageView(APIView):
 
         income = Transaction.objects.filter(wallet=wallet, transaction_type='Income').aggregate(total=Sum('amount'))['total'] or 0
         expense = Transaction.objects.filter(wallet=wallet, transaction_type='Expense').aggregate(total=Sum('amount'))['total'] or 0
+        balance = income - expense
 
         expense_breakdown, _ = get_category_breakdown(wallet, 'Expense')
         income_breakdown, _ = get_category_breakdown(wallet, 'Income')
@@ -298,7 +294,7 @@ class DashboardPageView(APIView):
         context = {
             'wallet': wallet,
             'transactions': transactions,
-            'balance': wallet.balance,
+            'balance': balance,
             'income': income,
             'expense': expense,
             'expense_breakdown': expense_breakdown,
@@ -308,6 +304,7 @@ class DashboardPageView(APIView):
 
 
 class LogoutPageView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -465,7 +462,9 @@ class ExportCSVView(APIView):
         transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at', '-creation_time',)
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename="transactions_{wallet.wallet_name}.csv"'
+        import re
+        safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', wallet.wallet_name)
+        response['Content-Disposition'] = f'attachment; filename="transactions_{safe_name}.csv"'
 
         writer = csv.writer(response)
         writer.writerow(['Description', 'Type', 'Category', 'Amount', 'Date', 'Time'])
@@ -503,34 +502,37 @@ class ExportPDFView(APIView):
         transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at', '-creation_time',)
 
         response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="transactions_{wallet.wallet_name}.pdf"'
+        import re
+        safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', wallet.wallet_name)
+        response['Content-Disposition'] = f'attachment; filename="transactions_{safe_name}.pdf"'
 
         p = canvas.Canvas(response, pagesize=A4)
         width, height = A4
 
-        p.setFont('Helvetica-Bold', 16)
-        p.drawString(50, height - 50, f'FinanceTracker - {wallet.wallet_name}')
+        def draw_header(p, y):
+            p.setFont('Helvetica-Bold', 16)
+            p.drawString(50, y, f'FinanceTracker - {wallet.wallet_name}')
+            p.setFont('Helvetica', 10)
+            p.drawString(50, y - 25, f'Balance: Rs. {wallet.balance}')
+            p.setFont('Helvetica-Bold', 11)
+            y -= 60
+            p.drawString(50, y, 'Description')
+            p.drawString(250, y, 'Type')
+            p.drawString(330, y, 'Category')
+            p.drawString(430, y, 'Amount')
+            p.drawString(510, y, 'Date')
+            p.line(50, y - 5, width - 50, y - 5)
+            return y - 25
+
+        y = draw_header(p, height - 50)
 
         p.setFont('Helvetica', 10)
-        p.drawString(50, height - 75, f'Balance: Rs. {wallet.balance}')
-
-        p.setFont('Helvetica-Bold', 11)
-        y = height - 110
-        p.drawString(50, y, 'Description')
-        p.drawString(250, y, 'Type')
-        p.drawString(330, y, 'Category')
-        p.drawString(430, y, 'Amount')
-        p.drawString(510, y, 'Date')
-
-        p.line(50, y - 5, width - 50, y - 5)
-
-        p.setFont('Helvetica', 10)
-        y -= 25
 
         for tx in transactions:
             if y < 50:
                 p.showPage()
-                y = height - 50
+                y = draw_header(p, height - 50)
+                p.setFont('Helvetica', 10)
 
             p.drawString(50, y, str(tx.description)[:30])
             p.drawString(250, y, tx.transaction_type)
@@ -592,12 +594,7 @@ class CreateBudgetView(APIView):
         serializer = BudgetSerializer(data=request.data)
 
         if not serializer.is_valid():
-            for error in serializer.errors.values():
-                if isinstance(error, list):
-                    for msg in error:
-                        messages.error(request, msg if isinstance(msg, str) else str(msg))
-                else:
-                    messages.error(request, str(error))
+            messages.error(request, 'Please fix the errors below and try again.')
             return redirect('budgets')
 
         serializer.save(wallet=wallet)
@@ -611,6 +608,9 @@ class DeleteBudgetView(APIView):
         budget = Budget.objects.filter(budget_id=budget_id, wallet__user=request.user).first()
         if budget:
             budget.delete()
+            messages.success(request, 'Budget deleted.')
+        else:
+            messages.error(request, 'Budget not found.')
         return redirect('budgets')
 
 
@@ -630,6 +630,16 @@ class CustomPasswordResetView(View):
     def post(self, request):
         from django.shortcuts import redirect
         from django.contrib import messages
+        from django.utils import timezone
+        import datetime
+
+        last_reset = request.session.get('password_reset_time')
+        if last_reset:
+            elapsed = (timezone.now() - timezone.datetime.fromisoformat(last_reset)).total_seconds()
+            if elapsed < 60:
+                messages.error(request, 'Please wait a minute before requesting another reset link.')
+                return redirect('password_reset')
+
         email = request.POST.get('email', '').strip()
         users = User.objects.filter(email__iexact=email)
 
@@ -657,6 +667,7 @@ class CustomPasswordResetView(View):
                 except Exception:
                     pass
 
+        request.session['password_reset_time'] = timezone.now().isoformat()
         return redirect('password_reset_done')
 
 
@@ -717,4 +728,162 @@ class DeleteSavingsGoalView(APIView):
         goal = SavingsGoal.objects.filter(goal_id=goal_id, wallet__user=request.user).first()
         if goal:
             goal.delete()
+            messages.success(request, 'Savings goal deleted.')
+        else:
+            messages.error(request, 'Savings goal not found.')
         return redirect('savings_goals')
+
+
+class SavingsGoalDetailView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def _get_wallet(self, request):
+        wallet_id = request.session.get('wallet_id')
+        if not wallet_id:
+            return None, None
+        try:
+            wallet = Wallet.objects.get(wallet_id=wallet_id, user=request.user)
+            goal = SavingsGoal.objects.filter(goal_id=goal_id, wallet=wallet).first()
+            return wallet, goal
+        except Wallet.DoesNotExist:
+            return None, None
+
+    def get(self, request, goal_id):
+        wallet_id = request.session.get('wallet_id')
+        if not wallet_id:
+            return redirect('select_wallet')
+        try:
+            wallet = Wallet.objects.get(wallet_id=wallet_id, user=request.user)
+        except Wallet.DoesNotExist:
+            return redirect('select_wallet')
+
+        goal = SavingsGoal.objects.filter(goal_id=goal_id, wallet=wallet).first()
+        if not goal:
+            messages.error(request, 'Savings goal not found.')
+            return redirect('savings_goals')
+
+        transactions = goal.goal_transactions.all()
+        return Response({
+            'wallet': wallet,
+            'goal': goal,
+            'transactions': transactions,
+        }, template_name='savings_goal_detail.html')
+
+
+class DepositToGoalView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, goal_id):
+        wallet_id = request.session.get('wallet_id')
+        if not wallet_id:
+            return redirect('select_wallet')
+        try:
+            wallet = Wallet.objects.get(wallet_id=wallet_id, user=request.user)
+        except Wallet.DoesNotExist:
+            return redirect('select_wallet')
+
+        goal = SavingsGoal.objects.filter(goal_id=goal_id, wallet=wallet).first()
+        if not goal:
+            messages.error(request, 'Savings goal not found.')
+            return redirect('savings_goals')
+
+        amount = request.POST.get('amount', '').strip()
+        description = request.POST.get('description', '').strip()
+
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            messages.error(request, 'Enter a valid amount greater than 0.')
+            return redirect('savings_goal_detail', goal_id=goal_id)
+
+        if amount > wallet.balance:
+            messages.error(request, 'Insufficient wallet balance for this deposit.')
+            return redirect('savings_goal_detail', goal_id=goal_id)
+
+        from decimal import Decimal
+        SavingsGoalTransaction.objects.create(
+            goal=goal,
+            transaction_type='Deposit',
+            amount=Decimal(str(amount)),
+            description=description or 'Deposit to goal',
+        )
+
+        wallet.balance -= Decimal(str(amount))
+        wallet.save()
+
+        messages.success(request, f'Deposited Rs. {amount} to {goal.name}.')
+        return redirect('savings_goal_detail', goal_id=goal_id)
+
+
+class WithdrawFromGoalView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, goal_id):
+        wallet_id = request.session.get('wallet_id')
+        if not wallet_id:
+            return redirect('select_wallet')
+        try:
+            wallet = Wallet.objects.get(wallet_id=wallet_id, user=request.user)
+        except Wallet.DoesNotExist:
+            return redirect('select_wallet')
+
+        goal = SavingsGoal.objects.filter(goal_id=goal_id, wallet=wallet).first()
+        if not goal:
+            messages.error(request, 'Savings goal not found.')
+            return redirect('savings_goals')
+
+        amount = request.POST.get('amount', '').strip()
+        description = request.POST.get('description', '').strip()
+
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            messages.error(request, 'Enter a valid amount greater than 0.')
+            return redirect('savings_goal_detail', goal_id=goal_id)
+
+        from decimal import Decimal
+        if Decimal(str(amount)) > goal.saved_amount:
+            messages.error(request, 'Insufficient savings in this goal.')
+            return redirect('savings_goal_detail', goal_id=goal_id)
+
+        SavingsGoalTransaction.objects.create(
+            goal=goal,
+            transaction_type='Withdrawal',
+            amount=Decimal(str(amount)),
+            description=description or 'Withdrawal from goal',
+        )
+
+        wallet.balance += Decimal(str(amount))
+        wallet.save()
+
+        messages.success(request, f'Withdrew Rs. {amount} from {goal.name}.')
+        return redirect('savings_goal_detail', goal_id=goal_id)
+
+
+class DeleteGoalTransactionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, tx_id):
+        tx = SavingsGoalTransaction.objects.filter(id=tx_id, goal__wallet__user=request.user).first()
+        if not tx:
+            messages.error(request, 'Transaction not found.')
+            return redirect('savings_goals')
+
+        goal = tx.goal
+        wallet = goal.wallet
+
+        from decimal import Decimal
+        if tx.transaction_type == 'Deposit':
+            wallet.balance += tx.amount
+        else:
+            wallet.balance -= tx.amount
+        wallet.save()
+
+        tx.delete()
+        messages.success(request, 'Transaction deleted.')
+        return redirect('savings_goal_detail', goal_id=goal.goal_id)

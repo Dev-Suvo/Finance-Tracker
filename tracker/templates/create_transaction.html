@@ -81,8 +81,22 @@
                     <label>Category</label>
                     <select name="category" id="category" class="form-control" required>
                         <option value="">Select Transaction Type First</option>
+                        <optgroup label="Income">
+                            <option value="Salary">Salary</option>
+                            <option value="Freelance">Freelance</option>
+                            <option value="Stipend">Stipend</option>
+                            <option value="Scholarship">Scholarship</option>
+                            <option value="Business Revenue">Business Revenue</option>
+                        </optgroup>
+                        <optgroup label="Expense">
+                            <option value="Food">Food</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Shopping">Shopping</option>
+                            <option value="Bills">Bills</option>
+                            <option value="Subscription">Subscription</option>
+                        </optgroup>
+                        <option value="Other">Other</option>
                     </select>
-
                 </div>
                 <button type="submit" class="btn btn-primary" style="width:100%;padding:14px;margin-top:6px">
                     Add Transaction
