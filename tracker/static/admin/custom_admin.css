@@ -169,10 +169,20 @@ nav[aria-label="Breadcrumbs"] .breadcrumbs a:hover {
 }
 
 #content h1 {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 20px;
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 4px;
     color: #1e293b !important;
+    letter-spacing: -0.3px;
+}
+
+#content h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #7c3aed !important;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #ede9fe;
 }
 
 /* ===== MODULE / CARDS ===== */
@@ -444,19 +454,29 @@ a.button.cancel-link:hover {
 .actions select,
 .actions #id_action {
     height: auto !important;
-    min-height: 38px !important;
-    border: 1px solid #d1d5db !important;
+    min-height: 36px !important;
+    border: 1.5px solid #d1d5db !important;
     border-radius: 8px !important;
-    padding: 8px 14px !important;
+    padding: 8px 40px 8px 12px !important;
     font-family: 'Poppins', sans-serif !important;
-    font-size: 14px !important;
+    font-size: 13px !important;
     background-color: #ffffff !important;
-    color: #111827 !important;
-    min-width: 280px !important;
+    color: #1e293b !important;
+    min-width: 200px !important;
+    width: auto !important;
+    max-width: 100% !important;
     margin: 0 !important;
     cursor: pointer;
     outline: none;
     vertical-align: middle !important;
+    appearance: auto !important;
+    transition: border-color .15s, box-shadow .15s !important;
+}
+
+#changelist .actions select:hover,
+.actions select:hover,
+.actions #id_action:hover {
+    border-color: #7c3aed !important;
 }
 
 .actions select:focus,
@@ -543,12 +563,22 @@ input[type="datetime"], textarea {
 
 select {
     font-family: 'Poppins', sans-serif !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1.5px solid #d1d5db !important;
     border-radius: 8px !important;
-    padding: 8px 12px !important;
+    padding: 8px 40px 8px 12px !important;
     font-size: 13px !important;
     background: #fff !important;
     color: #1e293b !important;
+    cursor: pointer !important;
+    appearance: auto !important;
+    transition: border-color .15s, box-shadow .15s !important;
+    width: auto !important;
+    min-width: 160px !important;
+    max-width: 100% !important;
+}
+
+select:hover {
+    border-color: #7c3aed !important;
 }
 
 input:focus, textarea:focus, select:focus {

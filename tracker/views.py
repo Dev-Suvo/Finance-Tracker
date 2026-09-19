@@ -296,9 +296,10 @@ class CreateTransactionPageView(APIView):
             messages.error(request, 'Enter a valid amount', extra_tags='app')
             return redirect('create_transaction')
 
-        tx = serializer.save(wallet=wallet)
-
         with transaction.atomic():
+            wallet = Wallet.objects.select_for_update().get(pk=wallet.pk)
+            tx = serializer.save(wallet=wallet)
+
             if tx.transaction_type == 'Income':
                 Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + tx.amount)
             else:
@@ -450,6 +451,8 @@ class UpdateTransactionView(APIView):
         wallet = tx_obj.wallet
 
         with transaction.atomic():
+            wallet = Wallet.objects.select_for_update().get(pk=wallet.pk)
+
             old_amount = tx_obj.amount
             if tx_obj.transaction_type == 'Income':
                 Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - old_amount)
@@ -459,6 +462,10 @@ class UpdateTransactionView(APIView):
             if data['transaction_type'] == 'Income':
                 Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + data['amount'])
             else:
+                wallet.refresh_from_db()
+                if wallet.balance < data['amount']:
+                    messages.error(request, 'Insufficient wallet balance.', extra_tags='app')
+                    return redirect('update_transaction', transaction_id=transaction_id)
                 Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - data['amount'])
 
             serializer = TransactionSerializer(tx_obj, data=request.data)
@@ -706,10 +713,13 @@ class CustomPasswordResetView(View):
 
         last_reset = request.session.get('password_reset_time')
         if last_reset:
-            elapsed = (timezone.now() - timezone.datetime.fromisoformat(last_reset)).total_seconds()
-            if elapsed < 60:
-                messages.error(request, 'Please wait a minute before requesting another reset link.', extra_tags='app')
-                return redirect('password_reset')
+            from django.utils.dateparse import parse_datetime
+            last_dt = parse_datetime(last_reset)
+            if last_dt is not None:
+                elapsed = (timezone.now() - last_dt).total_seconds()
+                if elapsed < 60:
+                    messages.error(request, 'Please wait a minute before requesting another reset link.', extra_tags='app')
+                    return redirect('password_reset')
 
         email = request.POST.get('email', '').strip()
         users = User.objects.filter(email__iexact=email)

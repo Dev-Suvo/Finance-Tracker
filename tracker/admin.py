@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import User, Group
 from django.db.models import F
+from django.db import transaction
 from django.utils.html import format_html
 from .models import Wallet, Transaction, UserProfile, Budget, SavingsGoal, SavingsGoalTransaction
 
@@ -10,6 +11,7 @@ class FinanceAdminSite(admin.AdminSite):
     site_title = 'FinanceTracker'
     index_title = 'Dashboard'
     site_url = '/'
+    logout_template = 'admin/logged_out.html'
 
 
 admin_site = FinanceAdminSite(name='financetracker_admin')
@@ -91,32 +93,34 @@ class TransactionAdmin(admin.ModelAdmin):
     formatted_amount.short_description = 'Amount'
 
     def save_model(self, request, obj, form, change):
-        if change:
-            old = Transaction.objects.get(pk=obj.pk)
-            wallet = old.wallet
-            if old.transaction_type == 'Income':
-                Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - old.amount)
+        with transaction.atomic():
+            if change:
+                old = Transaction.objects.get(pk=obj.pk)
+                wallet = old.wallet
+                if old.transaction_type == 'Income':
+                    Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - old.amount)
+                else:
+                    Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + old.amount)
+                if obj.transaction_type == 'Income':
+                    Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + obj.amount)
+                else:
+                    Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - obj.amount)
             else:
-                Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + old.amount)
-            if obj.transaction_type == 'Income':
-                Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + obj.amount)
-            else:
-                Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - obj.amount)
-        else:
-            wallet = obj.wallet
-            if obj.transaction_type == 'Income':
-                Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + obj.amount)
-            else:
-                Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - obj.amount)
-        super().save_model(request, obj, form, change)
+                wallet = obj.wallet
+                if obj.transaction_type == 'Income':
+                    Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + obj.amount)
+                else:
+                    Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - obj.amount)
+            super().save_model(request, obj, form, change)
 
     def delete_model(self, request, obj):
-        wallet = obj.wallet
-        if obj.transaction_type == 'Income':
-            Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - obj.amount)
-        else:
-            Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + obj.amount)
-        super().delete_model(request, obj)
+        with transaction.atomic():
+            wallet = obj.wallet
+            if obj.transaction_type == 'Income':
+                Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - obj.amount)
+            else:
+                Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + obj.amount)
+            super().delete_model(request, obj)
 
 
 @admin.register(UserProfile, site=admin_site)

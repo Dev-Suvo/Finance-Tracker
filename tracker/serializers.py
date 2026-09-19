@@ -48,7 +48,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             'transaction_id', 'wallet', 'created_at', 'updated_at',
         ]
 
-    INCOME_CATEGORIES = {'Salary', 'Freelance', 'Stipend', 'Scholarship', 'Business Revenue'}
+    INCOME_CATEGORIES = {'Salary', 'Freelance', 'Stipend', 'Scholarship', 'Business Revenue', 'Other'}
     EXPENSE_CATEGORIES = {'Food', 'Transport', 'Shopping', 'Bills', 'Subscription', 'Other'}
 
     def validate(self, attrs):
