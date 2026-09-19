@@ -26,10 +26,18 @@ from .views import (
     DepositToGoalView,
     WithdrawFromGoalView,
     DeleteGoalTransactionView,
+    FeaturesPageView,
+    PricingPageView,
+    SecurityPageView,
+    AboutPageView,
 )
 
 urlpatterns = [
     path('', LandingPageView.as_view(), name='landing'),
+    path('features/', FeaturesPageView.as_view(), name='features'),
+    path('pricing/', PricingPageView.as_view(), name='pricing'),
+    path('security/', SecurityPageView.as_view(), name='security'),
+    path('about/', AboutPageView.as_view(), name='about'),
     path('login/', LoginPageView.as_view(), name='login'),
     path('register/', RegisterPageView.as_view(), name='register'),
     path('verify-email/<str:token>/', VerifyEmailView.as_view(), name='verify_email'),

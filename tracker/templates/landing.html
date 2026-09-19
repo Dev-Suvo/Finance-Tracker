@@ -10,10 +10,10 @@
             FinanceTracker
         </div>
         <div class="nav-links">
-            <a href="#">Features</a>
-            <a href="#">How It Works</a>
-            <a href="#">Pricing</a>
-            <a href="#">About</a>
+            <a href="{% url 'features' %}">Features</a>
+            <a href="{% url 'security' %}">Security</a>
+            <a href="{% url 'pricing' %}">Pricing</a>
+            <a href="{% url 'about' %}">About</a>
         </div>
         <div class="nav-actions">
             <a href="{% url 'login' %}" class="btn btn-outline btn-sm">Log In</a>
@@ -45,7 +45,13 @@
 
             <div class="hero-social-proof">
                 <div class="avatars">
-                    <span>A</span><span>B</span><span>C</span><span>D</span>
+                    <span style="background:#6366f1;">RS</span>
+                    <span style="background:#ec4899;">SM</span>
+                    <span style="background:#14b8a6;">ND</span>
+                    <span style="background:#f97316;">PJ</span>
+                    <span style="background:#8b5cf6;">SD</span>
+                    <span style="background:#06b6d4;">TS</span>
+                    <span style="background:#0891b2;">RK</span>
                 </div>
                 <span><strong>58,000+</strong> users already tracking their finances</span>
             </div>
@@ -99,6 +105,11 @@
             <div class="l-stat-label">Average Rating</div>
         </div>
     </div>
+
+    <footer class="landing-footer">
+        <span>&copy; 2026 FinanceTracker</span>
+        <a href="{% url 'admin:index' %}">Admin</a>
+    </footer>
 
 </div>
 {% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}About - FinanceTracker{% endblock %}
+
+{% block content %}
+<div class="landing-page">
+
+    <nav class="landing-nav">
+        <div class="nav-logo">
+            <div class="logo-icon"><i class="bi bi-coin"></i></div>
+            FinanceTracker
+        </div>
+        <div class="nav-links">
+            <a href="{% url 'features' %}">Features</a>
+            <a href="{% url 'security' %}">Security</a>
+            <a href="{% url 'pricing' %}">Pricing</a>
+            <a href="{% url 'about' %}" class="active">About</a>
+        </div>
+        <div class="nav-actions">
+            <a href="{% url 'login' %}" class="btn btn-outline btn-sm">Log In</a>
+            <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Get Started</a>
+        </div>
+    </nav>
+
+    <section class="page-hero">
+        <div class="hero-badge"><i class="bi bi-info-circle"></i> Our story</div>
+        <h1>Built for People<br><span>Who Want Better.</span></h1>
+        <p>FinanceTracker was born from a simple idea — everyone deserves a clear, simple way to understand and manage their money.</p>
+    </section>
+
+    <section class="about-mission-section">
+        <div class="about-grid">
+            <div class="about-card">
+                <div class="about-icon"><i class="bi bi-lightbulb"></i></div>
+                <h3>Our Mission</h3>
+                <p>We believe financial literacy starts with visibility. When you can see where your money goes, you can make better decisions. FinanceTracker gives you that clarity — without the complexity of traditional finance apps.</p>
+            </div>
+            <div class="about-card">
+                <div class="about-icon"><i class="bi bi-people"></i></div>
+                <h3>Who It's For</h3>
+                <p>Students tracking pocket money. Professionals managing salaries. Freelancers handling irregular income. Families budgeting together. Anyone who wants to be smarter with their money.</p>
+            </div>
+            <div class="about-card">
+                <div class="about-icon"><i class="bi bi-tools"></i></div>
+                <h3>Built With</h3>
+                <p>Modern technology stack built for speed and reliability. Clean, intuitive design that makes managing money effortless.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="about-values-section">
+        <div class="values-grid">
+            <div class="value-item">
+                <div class="value-num">01</div>
+                <h3>Transparency</h3>
+                <p>No hidden fees. No dark patterns. We show you exactly what you get and how it works.</p>
+            </div>
+            <div class="value-item">
+                <div class="value-num">02</div>
+                <h3>Simplicity</h3>
+                <p>If a feature needs a tutorial, it's too complex. We design for intuition, not instruction manuals.</p>
+            </div>
+            <div class="value-item">
+                <div class="value-num">03</div>
+                <h3>Privacy</h3>
+                <p>Your financial data is personal. We never sell it, share it, or use it for advertising.</p>
+            </div>
+            <div class="value-item">
+                <div class="value-num">04</div>
+                <h3>Security</h3>
+                <p>Your data is protected with industry-leading practices. We never compromise on the safety of your financial information.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="about-stats-section">
+        <div class="landing-stats">
+            <div class="l-stat">
+                <div class="l-stat-val">2024</div>
+                <div class="l-stat-label">Founded</div>
+            </div>
+            <div class="l-stat">
+                <div class="l-stat-val">50K+</div>
+                <div class="l-stat-label">Happy Users</div>
+            </div>
+            <div class="l-stat">
+                <div class="l-stat-val">₹2B+</div>
+                <div class="l-stat-label">Tracked</div>
+            </div>
+            <div class="l-stat">
+                <div class="l-stat-val">4.9 ★</div>
+                <div class="l-stat-label">User Rating</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="page-cta">
+        <h2>Join the community.</h2>
+        <p>Start your financial journey with FinanceTracker today.</p>
+        <div class="cta-actions">
+            <a href="{% url 'register' %}" class="btn btn-primary">Get Started Free →</a>
+            <a href="{% url 'login' %}" class="btn btn-outline">Log In</a>
+        </div>
+    </section>
+
+    <footer class="landing-footer">
+        <span>&copy; 2026 FinanceTracker</span>
+        <a href="{% url 'admin:index' %}">Admin</a>
+    </footer>
+
+</div>
+{% endblock %}

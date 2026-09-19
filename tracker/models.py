@@ -73,11 +73,16 @@ class Budget(BaseModel):
         ('Other', 'Other'),
     )
 
+    PERIOD_CHOICES = (
+        ('monthly', 'Monthly'),
+        ('weekly', 'Weekly'),
+    )
+
     budget_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='budgets')
     category = models.CharField(max_length=30, choices=CATEGORY_CHOICES)
     limit_amount = models.DecimalField(max_digits=12, decimal_places=2)
-    period = models.CharField(max_length=10, choices=[('monthly', 'Monthly'), ('weekly', 'Weekly')], default='monthly')
+    period = models.CharField(max_length=10, choices=PERIOD_CHOICES, default='monthly')
 
     class Meta:
         unique_together = ['wallet', 'category', 'period']

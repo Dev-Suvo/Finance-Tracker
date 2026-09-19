@@ -16,7 +16,14 @@
     {% if messages %}
     <div class="message-container">
         {% for message in messages %}
-        <div class="alert {{ message.tags }}">{{ message }}</div>
+        {% if 'app' in message.extra_tags %}
+        <div class="alert {{ message.tags }}" id="alert-{{ forloop.counter }}">
+            {% if 'success' in message.tags %}<i class="bi bi-check-circle-fill"></i>
+            {% elif 'error' in message.tags %}<i class="bi bi-exclamation-circle-fill"></i>
+            {% else %}<i class="bi bi-info-circle-fill"></i>{% endif %}
+            {{ message }}
+        </div>
+        {% endif %}
         {% endfor %}
     </div>
     {% endif %}

@@ -1,12 +1,12 @@
-from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.urls import reverse_lazy
 from tracker.views import CustomPasswordResetView
+from tracker.admin import admin_site
 
 urlpatterns = [
     path('', include('tracker.urls')),
-    path('admin/', admin.site.urls),
+    path('admin/', admin_site.urls),
 
     path('password-reset/', CustomPasswordResetView.as_view(), name='password_reset'),
 

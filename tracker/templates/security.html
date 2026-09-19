@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}Security - FinanceTracker{% endblock %}
+
+{% block content %}
+<div class="landing-page">
+
+    <nav class="landing-nav">
+        <div class="nav-logo">
+            <div class="logo-icon"><i class="bi bi-coin"></i></div>
+            FinanceTracker
+        </div>
+        <div class="nav-links">
+            <a href="{% url 'features' %}">Features</a>
+            <a href="{% url 'security' %}" class="active">Security</a>
+            <a href="{% url 'pricing' %}">Pricing</a>
+            <a href="{% url 'about' %}">About</a>
+        </div>
+        <div class="nav-actions">
+            <a href="{% url 'login' %}" class="btn btn-outline btn-sm">Log In</a>
+            <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Get Started</a>
+        </div>
+    </nav>
+
+    <section class="page-hero">
+        <div class="hero-badge"><i class="bi bi-shield-check"></i> Your privacy matters</div>
+        <h1>Your Data is<br><span>Safe With Us.</span></h1>
+        <p>We take security seriously. Your financial data is protected with industry-leading practices at every step.</p>
+    </section>
+
+    <section class="security-grid-section">
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-lock-fill"></i></div>
+                <h3>Encrypted Passwords</h3>
+                <p>Your password is never stored in plain text. We use secure hashing to keep your credentials safe at all times.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-envelope-check"></i></div>
+                <h3>Email Verification</h3>
+                <p>Every account is verified via email before access is granted. This ensures only real users can access the platform.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-shield-lock"></i></div>
+                <h3>Secure by Design</h3>
+                <p>Every action on FinanceTracker is verified and authorized. Your account is protected from unauthorized access at all times.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-key"></i></div>
+                <h3>Session Protection</h3>
+                <p>Your login session is secure and expires automatically. Stay logged in only when you choose to.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-person-check"></i></div>
+                <h3>Strong Passwords</h3>
+                <p>We enforce password requirements to keep your account safe from weak or guessable passwords.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
+                <h3>Encrypted Connections</h3>
+                <p>All data between your device and our servers is fully encrypted. Your information is protected during every interaction.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
+                <h3>Account Monitoring</h3>
+                <p>We monitor for suspicious activity and protect your account from unauthorized access attempts.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-database-lock"></i></div>
+                <h3>Secure Storage</h3>
+                <p>Your data is stored securely with restricted access. Only authorized systems can access your information.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-eye-slash"></i></div>
+                <h3>Zero Data Selling</h3>
+                <p>We never sell, share, or monetize your financial data. Your privacy is our priority. Your data belongs to you.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="page-cta">
+        <h2>Security is not optional.</h2>
+        <p>Join FinanceTracker and experience peace of mind with every transaction.</p>
+        <div class="cta-actions">
+            <a href="{% url 'register' %}" class="btn btn-primary">Get Started Free →</a>
+        </div>
+    </section>
+
+    <footer class="landing-footer">
+        <span>&copy; 2026 FinanceTracker</span>
+        <a href="{% url 'admin:index' %}">Admin</a>
+    </footer>
+
+</div>
+{% endblock %}
