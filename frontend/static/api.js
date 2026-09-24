@@ -45,7 +45,14 @@ const API = {
         const access = API.getAccess();
         if (access) options.headers['Authorization'] = 'Bearer ' + access;
 
-        let response = await fetch(API_BASE + path.replace(/^\/+/, ''), options);
+        let response;
+        try {
+            response = await fetch(API_BASE + path.replace(/^\/+/, ''), options);
+        } catch (e) {
+            // Network/CORS failure — return a normal error object so UI can
+            // re-enable buttons and show a message instead of dying silently.
+            return { ok: false, status: 0, data: { detail: 'Cannot reach the server. Please try again in a moment.' } };
+        }
 
         // 401 -> try refreshing once, then retry
         if (response.status === 401 && API.getRefresh() && !options._retried) {
