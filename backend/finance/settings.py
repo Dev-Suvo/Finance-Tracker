@@ -1,7 +1,3 @@
-"""
-Django settings for finance project.
-"""
-
 from pathlib import Path
 import os
 import environ
@@ -158,6 +154,10 @@ if not DEBUG and not RUNNING_TESTS:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_SSL_REDIRECT = True
+    # Render (and most PaaS) terminate TLS at a proxy and forward plain HTTP to the
+    # app. This tells Django to trust the X-Forwarded-Proto header so SECURE_SSL_REDIRECT
+    # doesn't cause an infinite redirect loop.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
