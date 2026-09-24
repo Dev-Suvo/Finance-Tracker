@@ -16,7 +16,7 @@ services:
     name: finance-tracker-api
     runtime: python
     plan: free
-    rootDir: stack/backend
+    rootDir: backend
     buildCommand: |
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
