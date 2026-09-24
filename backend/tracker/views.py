@@ -435,7 +435,10 @@ class TransactionDetailView(APIView):
             else:
                 wallet.refresh_from_db()
                 if wallet.balance < data['amount']:
-                    Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + old_amount)
+                    if tx_obj.transaction_type == 'Income':
+                        Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + old_amount)
+                    else:
+                        Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - old_amount)
                     return Response({'detail': 'Insufficient wallet balance.'},
                                     status=status.HTTP_400_BAD_REQUEST)
                 Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') - data['amount'])
@@ -601,6 +604,13 @@ class BudgetListView(APIView):
                 else:
                     flat_errors.append(str(errs))
             return Response({'errors': flat_errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        if Budget.objects.filter(
+            wallet=wallet, category=serializer.validated_data['category'],
+            period=serializer.validated_data['period']
+        ).exists():
+            return Response({'errors': [f'A budget for "{serializer.validated_data["category"]}" ({serializer.validated_data["period"]}) already exists in this wallet.']},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         serializer.save(wallet=wallet)
         return Response({'detail': 'Budget created.'}, status=status.HTTP_201_CREATED)

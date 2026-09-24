@@ -1,0 +1,50 @@
+# Render blueprint: creates the Django API service + free Postgres database.
+# Push the repo, then import this file via Render Dashboard: New > Blueprint.
+# After import, set SECRET_KEY in the service's Environment tab.
+# Replace the placeholder domain in CORS_ALLOWED_ORIGINS/FRONTEND_URL with your
+# real Vercel frontend domain.
+
+databases:
+  - name: finance-tracker-db
+    plan: free
+    databaseName: financetracker
+    user: financetracker
+    ipAllowList: []
+
+services:
+  - type: web
+    name: finance-tracker-api
+    runtime: python
+    plan: free
+    rootDir: stack/backend
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    startCommand: gunicorn finance.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 60
+    envVars:
+      - key: SECRET_KEY
+        sync: false
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: finance-tracker-db
+          property: connectionString
+      - key: ALLOWED_HOSTS
+        value: "localhost,127.0.0.1"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://finance-tracker.vercel.app"
+      - key: FRONTEND_URL
+        value: "https://finance-tracker.vercel.app"
+      - key: EMAIL_HOST
+        value: "smtp.gmail.com"
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        value: "FinanceTracker <noreply@financetracker.com>"

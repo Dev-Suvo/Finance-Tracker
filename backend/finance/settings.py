@@ -5,6 +5,7 @@ Django settings for finance project.
 from pathlib import Path
 import os
 import environ
+import sys
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -44,6 +45,7 @@ SITE_ID = 1
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -147,7 +149,11 @@ EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default=f'FinanceTracker <{EMAIL_HOST_USER}>')
 
-if not DEBUG:
+import sys
+
+RUNNING_TESTS = 'test' in sys.argv
+
+if not DEBUG and not RUNNING_TESTS:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
@@ -155,3 +161,9 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
+    # Auto-allow the host Render assigns us (RENDER_EXTERNAL_URL) so ALLOWED_HOSTS
+    # doesn't need to be updated every time a pristine Render service is deployed.
+    render_url = os.environ.get('RENDER_EXTERNAL_URL')
+    if render_url:
+        render_host = render_url.replace('https://', '').replace('http://', '')
+        ALLOWED_HOSTS = [h for h in ALLOWED_HOSTS if h] + ['localhost', '127.0.0.1', render_host]
