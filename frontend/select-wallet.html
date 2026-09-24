@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Wallet | FinanceTracker</title>
+    <link rel="stylesheet" href="./static/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body data-page="select-wallet">
+    <div class="message-container"></div>
+    <div class="layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-header">
+                <div class="page-header-left">
+                    <h1>Select Wallet</h1>
+                    <p>Choose a wallet to continue</p>
+                </div>
+            </div>
+
+            <div class="select-wallet-grid" id="wallet-grid"></div>
+            <div class="card" id="no-wallets" style="max-width:500px;margin-top:20px;display:none;">
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="bi bi-wallet2"></i></div>
+                    <h3>Oops! Nothing there.</h3>
+                    <p>You haven't created any wallet yet.</p>
+                    <a href="create-wallet.html" class="btn btn-primary">Create Wallet</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./static/config.js"></script>
+    <script src="./static/api.js"></script>
+    <script src="./static/layout.js"></script>
+    <script>
+    (function () {
+        API.get('wallets/').then(function (r) {
+            if (!r.ok) return;
+            const wallets = r.data.wallets;
+            if (!wallets.length) {
+                document.getElementById('no-wallets').style.display = 'block';
+                return;
+            }
+            document.getElementById('wallet-grid').innerHTML = wallets.map(function (w) {
+                return `<button data-wid="${w.wallet_id}" data-wname="${escapeAttr(w.wallet_name)}" style="width:100%;border:none;background:none;text-align:left;">
+                    <div class="wallet-card">
+                        <div class="wallet-card-header">
+                            <div class="wallet-card-icon"><i class="bi bi-wallet2"></i></div>
+                        </div>
+                        <h3>${escapeHtml(w.wallet_name)}</h3>
+                        <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Active Wallet</p>
+                        <div class="wallet-balance">Rs. ${parseFloat(w.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                        <div class="wc-arrow">Select →</div>
+                    </div>
+                </button>`;
+            }).join('');
+            document.getElementById('wallet-grid').addEventListener('click', function (e) {
+                const btn = e.target.closest('[data-wid]');
+                if (btn) selectWallet(btn.dataset.wid, btn.dataset.wname);
+            });
+        });
+
+        window.selectWallet = function (id, name) {
+            API.setWallet(id, name);
+            window.location.href = 'dashboard.html';
+        };
+
+        function escapeHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+        function escapeAttr(s) {
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+    })();
+    </script>
+</body>
+</html>

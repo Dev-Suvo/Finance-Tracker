@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savings Goal | FinanceTracker</title>
+    <link rel="stylesheet" href="./static/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body data-page="savings-goals" data-require-wallet>
+    <div class="message-container"></div>
+    <div class="layout" id="app-layout">
+        <div class="main-content">
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+                <div>
+                    <a href="savings-goals.html" style="font-size:13px;color:var(--text-muted);text-decoration:none;">
+                        <i class="bi bi-arrow-left"></i> Back to Goals
+                    </a>
+                    <h1 style="font-size:20px;font-weight:700;margin-top:4px;" id="goal-name">—</h1>
+                    <p style="font-size:13px;color:var(--text-muted);margin-top:2px;" id="goal-subtitle"></p>
+                </div>
+            </div>
+
+            <div class="section-card" style="padding:24px;margin-bottom:20px;">
+                <div style="display:flex;gap:30px;flex-wrap:wrap;align-items:center;">
+                    <div style="flex:1;min-width:200px;">
+                        <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Saved</div>
+                        <div style="font-size:24px;font-weight:700;color:var(--purple);" id="goal-saved">Rs. 0</div>
+                    </div>
+                    <div style="flex:1;min-width:200px;">
+                        <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Target</div>
+                        <div style="font-size:24px;font-weight:700;" id="goal-target">Rs. 0</div>
+                    </div>
+                    <div style="flex:1;min-width:200px;">
+                        <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Remaining</div>
+                        <div style="font-size:24px;font-weight:700;" id="goal-remaining">—</div>
+                    </div>
+                </div>
+                <div class="budget-progress-track" style="margin-top:18px;">
+                    <div class="budget-progress-fill" id="goal-bar" style="width:0%;background:var(--yellow);"></div>
+                </div>
+                <div style="margin-top:6px;font-size:12px;color:var(--text-muted);" id="goal-pct">0% achieved</div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+                <div class="section-card" style="padding:20px;">
+                    <h3 style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--green);">
+                        <i class="bi bi-plus-circle"></i> Deposit
+                    </h3>
+                    <form id="deposit-form">
+                        <div class="form-group">
+                            <label>Amount</label>
+                            <input type="number" step="0.01" name="amount" class="form-control" placeholder="Enter amount" required min="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <input type="text" name="description" class="form-control" placeholder="e.g. Birthday money">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width:100%;padding:10px;margin-top:4px;background:var(--green);border-color:var(--green);">
+                            <i class="bi bi-plus-lg"></i> Deposit
+                        </button>
+                    </form>
+                </div>
+
+                <div class="section-card" style="padding:20px;">
+                    <h3 style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--red);">
+                        <i class="bi bi-dash-circle"></i> Withdraw
+                    </h3>
+                    <form id="withdraw-form">
+                        <div class="form-group">
+                            <label>Amount</label>
+                            <input type="number" step="0.01" name="amount" class="form-control" placeholder="Enter amount" required min="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <input type="text" name="description" class="form-control" placeholder="e.g. Emergency use">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width:100%;padding:10px;margin-top:4px;background:var(--red);border-color:var(--red);">
+                            <i class="bi bi-dash-lg"></i> Withdraw
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div style="padding:20px 22px;border-bottom:1px solid var(--border);">
+                    <h2 style="font-size:15px;font-weight:700;">Transaction History</h2>
+                </div>
+                <div id="tx-table" style="overflow-x:auto;display:none;">
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead>
+                            <tr style="border-bottom:1px solid var(--border);text-align:left;">
+                                <th style="padding:12px 22px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Date</th>
+                                <th style="padding:12px 16px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Type</th>
+                                <th style="padding:12px 16px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Amount</th>
+                                <th style="padding:12px 16px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Description</th>
+                                <th style="padding:12px 16px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tx-body"></tbody>
+                    </table>
+                </div>
+                <div class="empty-state" id="tx-empty" style="padding:40px 20px;display:none;">
+                    <div class="empty-icon"><i class="bi bi-piggy-bank"></i></div>
+                    <h3>No Transactions Yet</h3>
+                    <p>Make a deposit to start saving toward this goal.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./static/config.js"></script>
+    <script src="./static/api.js"></script>
+    <script src="./static/layout.js"></script>
+    <script>
+    (function () {
+        const goalId = new URLSearchParams(window.location.search).get('id');
+        if (!goalId) { showAlert('No goal selected.', 'error'); return; }
+
+        const fmt = function (v) { return 'Rs. ' + parseFloat(v).toLocaleString('en-IN', { minimumFractionDigits: 2 }); };
+
+        async function load() {
+            const r = await API.get('goals/' + goalId + '/');
+            if (!r.ok) { showAlert(r.data.detail || 'Goal not found.', 'error'); return; }
+            const g = r.data.goal;
+            document.getElementById('goal-name').textContent = g.name;
+            document.getElementById('goal-subtitle').textContent =
+                g.period.charAt(0).toUpperCase() + g.period.slice(1) +
+                (g.deadline ? ' \u00b7 Due ' + new Date(g.deadline).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '');
+            document.getElementById('goal-saved').textContent = fmt(g.saved_amount);
+            document.getElementById('goal-target').textContent = fmt(g.target_amount);
+            const remaining = parseFloat(g.remaining);
+            document.getElementById('goal-remaining').textContent = remaining > 0 ? fmt(g.remaining) : 'Goal Reached!';
+            document.getElementById('goal-remaining').style.color = remaining > 0 ? 'var(--text-main)' : 'var(--green)';
+            const bar = document.getElementById('goal-bar');
+            bar.style.width = (g.percentage > 100 ? 100 : g.percentage) + '%';
+            bar.style.background = g.percentage >= 100 ? 'var(--green)' : g.percentage >= 50 ? 'var(--blue)' : 'var(--yellow)';
+            document.getElementById('goal-pct').textContent = g.percentage + '% achieved';
+
+            renderTx(r.data.transactions);
+        }
+
+        function renderTx(txs) {
+            const table = document.getElementById('tx-table');
+            const empty = document.getElementById('tx-empty');
+            if (!txs.length) {
+                table.style.display = 'none';
+                empty.style.display = '';
+                return;
+            }
+            table.style.display = '';
+            empty.style.display = 'none';
+            document.getElementById('tx-body').innerHTML = txs.map(function (t) {
+                const deposit = t.transaction_type === 'Deposit';
+                const badge = deposit ? 'background:#dcfce7;color:#16a34a;' : 'background:#fee2e2;color:#dc2626;';
+                return `<tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:12px 22px;font-size:13px;">${new Date(t.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                    <td style="padding:12px 16px;"><span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;${badge}">${t.transaction_type}</span></td>
+                    <td style="padding:12px 16px;font-size:13px;font-weight:600;">Rs. ${parseFloat(t.amount).toLocaleString('en-IN')}</td>
+                    <td style="padding:12px 16px;font-size:13px;color:var(--text-muted);">${escapeHtml(t.description || '')}</td>
+                    <td style="padding:12px 16px;">
+                        <button type="button" onclick="deleteGoalTx('${t.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        window.deleteGoalTx = function (id) {
+            if (!confirm('Delete this transaction?')) return;
+            API.del('goal-transactions/' + id + '/').then(function (r) {
+                showAlert(r.data.detail || 'Deleted.', 'success');
+                load();
+            });
+        };
+
+        function submit(path, formEl) {
+            const form = new FormData(formEl);
+            return API.post(path, { amount: form.get('amount'), description: form.get('description') });
+        }
+
+        document.getElementById('deposit-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type=submit]');
+            btn.disabled = true;
+            const r = await submit('goals/' + goalId + '/deposit/', e.target);
+            btn.disabled = false;
+            if (r.ok) {
+                showAlert(r.data.detail, 'success');
+                e.target.reset();
+                load();
+            } else {
+                showAlert(r.data.detail || 'Deposit failed.', 'error');
+            }
+        });
+
+        document.getElementById('withdraw-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type=submit]');
+            btn.disabled = true;
+            const r = await submit('goals/' + goalId + '/withdraw/', e.target);
+            btn.disabled = false;
+            if (r.ok) {
+                showAlert(r.data.detail, 'success');
+                e.target.reset();
+                load();
+            } else {
+                showAlert(r.data.detail || 'Withdraw failed.', 'error');
+            }
+        });
+
+        load();
+
+        function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    })();
+    </script>
+</body>
+</html>

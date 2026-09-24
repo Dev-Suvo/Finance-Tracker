@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budgets | FinanceTracker</title>
+    <link rel="stylesheet" href="./static/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body data-page="budgets" data-require-wallet>
+    <div class="message-container"></div>
+    <div class="layout" id="app-layout">
+        <div class="main-content">
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+                <div>
+                    <h1 style="font-size:20px;font-weight:700;">Budgets & Spending Limits</h1>
+                    <p style="font-size:13px;color:var(--text-muted);margin-top:2px;" data-wallet-chip></p>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <a href="transactions.html" class="btn btn-outline btn-sm"><i class="bi bi-arrow-left"></i> Transactions</a>
+                </div>
+            </div>
+
+            <form id="budget-form" class="filter-row">
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category" id="budget-category" class="form-control" required>
+                        <option value="">Select Category</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Limit Amount</label>
+                    <input type="number" step="0.01" name="limit_amount" class="form-control" placeholder="Enter limit" required>
+                </div>
+                <div class="form-group">
+                    <label>Period</label>
+                    <select name="period" class="form-control">
+                        <option value="monthly">Monthly</option>
+                        <option value="weekly">Weekly</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Budget</button>
+            </form>
+
+            <div class="section-card">
+                <div id="budget-grid-wrap" style="padding:20px 22px;display:none;">
+                    <div class="budget-grid" id="budget-grid"></div>
+                </div>
+                <div class="empty-state" id="budget-empty" style="padding:50px 20px;display:none;">
+                    <div class="empty-icon"><i class="bi bi-wallet2"></i></div>
+                    <h3>No Budgets Set</h3>
+                    <p>Create a budget to track your spending limits by category.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./static/config.js"></script>
+    <script src="./static/api.js"></script>
+    <script src="./static/layout.js"></script>
+    <script>
+    (async function () {
+        const walletId = API.getWalletId();
+        if (!walletId) return;
+
+        async function load() {
+            const r = await API.get('wallets/' + walletId + '/budgets/');
+            if (!r.ok) { showAlert(r.data.detail || 'Failed to load budgets.', 'error'); return; }
+            render(r.data.budgets);
+
+            const select = document.getElementById('budget-category');
+            if (!select.options.length) {
+                r.data.expense_categories.forEach(function (c) {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = c;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        function render(budgets) {
+            const wrap = document.getElementById('budget-grid-wrap');
+            const empty = document.getElementById('budget-empty');
+            if (!budgets.length) {
+                wrap.style.display = 'none';
+                empty.style.display = '';
+                return;
+            }
+            wrap.style.display = '';
+            empty.style.display = 'none';
+            document.getElementById('budget-grid').innerHTML = budgets.map(function (b) {
+                const pct = b.percentage > 100 ? 100 : b.percentage;
+                const barColor = b.percentage > 100 ? 'var(--red)' : b.percentage > 75 ? 'var(--yellow)' : 'var(--green)';
+                const usedColor = b.percentage > 100 ? 'var(--red)' : b.percentage > 75 ? 'var(--yellow)' : 'var(--green)';
+                const remainingNegative = parseFloat(b.remaining) < 0;
+                const remainingColor = remainingNegative ? 'var(--red)' : 'var(--green)';
+                return `<div class="budget-card">
+                    <div class="budget-card-top">
+                        <div style="overflow:hidden;">
+                            <div class="budget-card-cat">${escapeHtml(b.category)}</div>
+                            <div class="budget-card-period">${b.period.charAt(0).toUpperCase() + b.period.slice(1)}</div>
+                        </div>
+                        <button type="button" class="budget-card-delete" title="Delete" onclick="deleteBudget('${b.budget_id}')">
+                            <i class="bi bi-trash3-fill"></i>
+                        </button>
+                    </div>
+                    <div class="budget-card-amounts">
+                        <span class="label">Spent</span>
+                        <span class="value">Rs. ${parseFloat(b.spent).toLocaleString('en-IN')} / Rs. ${parseFloat(b.limit_amount).toLocaleString('en-IN')}</span>
+                    </div>
+                    <div class="budget-progress-track">
+                        <div class="budget-progress-fill" style="width:${pct}%;background:${usedColor};"></div>
+                    </div>
+                    <div class="budget-card-footer">
+                        <span class="pct">${b.percentage}% used</span>
+                        <span class="remaining" style="color:${remainingColor};">
+                            ${remainingNegative ? 'Over by Rs. ' + parseFloat(Math.abs(b.remaining)).toLocaleString('en-IN') : 'Rs. ' + parseFloat(b.remaining).toLocaleString('en-IN') + ' left'}
+                        </span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.deleteBudget = function (id) {
+            if (!confirm('Delete this budget?')) return;
+            API.del('budgets/' + id + '/').then(function (r) {
+                showAlert(r.data.detail || 'Deleted.', 'success');
+                load();
+            });
+        };
+
+        document.getElementById('budget-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const form = new FormData(e.target);
+            const btn = e.target.querySelector('button[type=submit]');
+            btn.disabled = true;
+            const r = await API.post('wallets/' + walletId + '/budgets/', {
+                category: form.get('category'),
+                limit_amount: form.get('limit_amount'),
+                period: form.get('period'),
+            });
+            btn.disabled = false;
+            if (r.ok) {
+                showAlert('Budget created.', 'success');
+                e.target.reset();
+                load();
+            } else {
+                const errs = r.data.errors;
+                showAlert(Array.isArray(errs) ? errs.join(' ') : (r.data.detail || 'Failed to create budget.'), 'error');
+            }
+        });
+
+        load();
+
+        function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    })();
+    </script>
+</body>
+</html>

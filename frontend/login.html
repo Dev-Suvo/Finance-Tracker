@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | FinanceTracker</title>
+    <link rel="stylesheet" href="./static/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+
+    <div class="message-container"></div>
+
+    <div class="auth-container">
+
+        <div class="auth-sidebar">
+            <div>
+                <div class="auth-logo">
+                    <div class="logo-icon"><i class="bi bi-coin"></i></div>
+                    FinanceTracker
+                </div>
+                <div class="auth-menu" style="margin-top:40px;">
+                    <a class="active">
+                        <i class="bi bi-box-arrow-in-right"></i> Log In
+                    </a>
+                    <a href="register.html">
+                        <i class="bi bi-person-plus-fill"></i> Register
+                    </a>
+                    <a href="index.html">
+                        <i class="bi bi-house-fill"></i> Home
+                    </a>
+                </div>
+            </div>
+            <div class="auth-sidebar-footer">Secure Financial Management</div>
+        </div>
+
+        <div class="auth-content">
+            <div class="auth-card">
+
+                <span class="auth-emoji">👋</span>
+                <h1>Welcome back</h1>
+                <p class="subtitle">Log in to your FinanceTracker account</p>
+
+                <div class="social-btns">
+                    <button class="social-btn" type="button" disabled style="opacity:0.6;cursor:not-allowed;">
+                        <i class="bi bi-google g-icon"></i> Continue with Google
+                    </button>
+                    <button class="social-btn" type="button" disabled style="opacity:0.6;cursor:not-allowed;">
+                        <i class="bi bi-facebook fb-icon"></i> Continue with Facebook
+                    </button>
+                </div>
+
+                <div class="divider">or continue with email</div>
+
+                <form id="login-form">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" name="username" class="form-control" placeholder="Enter your username" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                    </div>
+
+                    <div class="remember-row">
+                        <label>
+                            <input type="checkbox" name="remember_me" style="accent-color:var(--purple);"> Remember me
+                        </label>
+                        <a href="forgot-password.html">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width:100%;padding:14px;">
+                        Log In to My Account
+                    </button>
+                </form>
+
+                <p class="account-link" style="margin-top:16px;">
+                    Don't have an account? <a href="register.html">Create one free</a>
+                </p>
+
+                <div class="security-badges">
+                    <div class="sec-badge"><i class="bi bi-lock-fill"></i> SSL Secured</div>
+                    <div class="sec-badge"><i class="bi bi-shield-half"></i> Data Private</div>
+                    <div class="sec-badge"><i class="bi bi-check-circle-fill"></i> Trusted</div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="./static/config.js"></script>
+    <script src="./static/api.js"></script>
+    <script>
+    document.getElementById('login-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const form = new FormData(e.target);
+        const btn = e.target.querySelector('button[type=submit]');
+        btn.disabled = true;
+        const r = await API.login(form.get('username'), form.get('password'));
+        btn.disabled = false;
+        if (r.ok) {
+            window.location.href = 'home.html';
+        } else {
+            const msg = (r.data && r.data.detail) || 'Login failed. Please try again.';
+            showAlert(msg, 'error');
+        }
+    });
+    </script>
+</body>
+</html>

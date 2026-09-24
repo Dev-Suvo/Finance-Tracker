@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savings Goals | FinanceTracker</title>
+    <link rel="stylesheet" href="./static/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body data-page="savings-goals" data-require-wallet>
+    <div class="message-container"></div>
+    <div class="layout" id="app-layout">
+        <div class="main-content">
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+                <div>
+                    <h1 style="font-size:20px;font-weight:700;">Savings Goals</h1>
+                    <p style="font-size:13px;color:var(--text-muted);margin-top:2px;" data-wallet-chip></p>
+                </div>
+                <a href="transactions.html" class="btn btn-outline btn-sm"><i class="bi bi-arrow-left"></i> Transactions</a>
+            </div>
+
+            <form id="goal-form" class="filter-row">
+                <div class="form-group">
+                    <label>Goal Name</label>
+                    <input type="text" name="name" class="form-control" placeholder="e.g. Emergency Fund" required>
+                </div>
+                <div class="form-group">
+                    <label>Target Amount</label>
+                    <input type="number" step="0.01" name="target_amount" class="form-control" placeholder="Enter target" required>
+                </div>
+                <div class="form-group">
+                    <label>Period</label>
+                    <select name="period" class="form-control">
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Deadline</label>
+                    <input type="date" name="deadline" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Goal</button>
+            </form>
+
+            <div class="section-card">
+                <div id="goal-grid-wrap" style="padding:20px 22px;display:none;">
+                    <div class="budget-grid" id="goal-grid"></div>
+                </div>
+                <div class="empty-state" id="goal-empty" style="padding:50px 20px;display:none;">
+                    <div class="empty-icon"><i class="bi bi-bullseye"></i></div>
+                    <h3>No Savings Goals</h3>
+                    <p>Set a goal to track your savings progress.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./static/config.js"></script>
+    <script src="./static/api.js"></script>
+    <script src="./static/layout.js"></script>
+    <script>
+    (function () {
+        const walletId = API.getWalletId();
+        if (!walletId) return;
+
+        async function load() {
+            const r = await API.get('wallets/' + walletId + '/goals/');
+            if (!r.ok) { showAlert(r.data.detail || 'Failed to load goals.', 'error'); return; }
+            render(r.data.goals);
+        }
+
+        function render(goals) {
+            const wrap = document.getElementById('goal-grid-wrap');
+            const empty = document.getElementById('goal-empty');
+            if (!goals.length) {
+                wrap.style.display = 'none';
+                empty.style.display = '';
+                return;
+            }
+            wrap.style.display = '';
+            empty.style.display = 'none';
+            document.getElementById('goal-grid').innerHTML = goals.map(function (g) {
+                const pct = g.percentage > 100 ? 100 : g.percentage;
+                const barColor = g.percentage >= 100 ? 'var(--green)' : g.percentage >= 50 ? 'var(--blue)' : 'var(--yellow)';
+                const due = g.deadline ? ' &middot; Due ' + new Date(g.deadline).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+                return `<div class="budget-card">
+                    <div class="budget-card-top">
+                        <div style="overflow:hidden;">
+                            <div class="budget-card-cat">${escapeHtml(g.name)}</div>
+                            <div class="budget-card-period">${g.period.charAt(0).toUpperCase() + g.period.slice(1)}${due}</div>
+                        </div>
+                        <button type="button" class="budget-card-delete" title="Delete" onclick="deleteGoal('${g.goal_id}')">
+                            <i class="bi bi-trash3-fill"></i>
+                        </button>
+                    </div>
+                    <div class="budget-card-amounts">
+                        <span class="label">Saved</span>
+                        <span class="value">Rs. ${parseFloat(g.saved_amount).toLocaleString('en-IN')} / Rs. ${parseFloat(g.target_amount).toLocaleString('en-IN')}</span>
+                    </div>
+                    <div class="budget-progress-track">
+                        <div class="budget-progress-fill" style="width:${pct}%;background:${barColor};"></div>
+                    </div>
+                    <div class="budget-card-footer">
+                        <span class="pct">${g.percentage}% achieved</span>
+                        <a href="savings-goal-detail.html?id=${g.goal_id}" class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 10px;">
+                            <i class="bi bi-piggy-bank"></i> Open
+                        </a>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.deleteGoal = function (id) {
+            if (!confirm('Delete this goal?')) return;
+            API.del('goals/' + id + '/').then(function (r) {
+                showAlert(r.data.detail || 'Deleted.', 'success');
+                load();
+            });
+        };
+
+        document.getElementById('goal-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const form = new FormData(e.target);
+            const btn = e.target.querySelector('button[type=submit]');
+            btn.disabled = true;
+            const payload = {
+                name: form.get('name'),
+                target_amount: form.get('target_amount'),
+                period: form.get('period'),
+                deadline: form.get('deadline') || null,
+            };
+            const r = await API.post('wallets/' + walletId + '/goals/', payload);
+            btn.disabled = false;
+            if (r.ok) {
+                showAlert('Savings goal created!', 'success');
+                e.target.reset();
+                load();
+            } else {
+                const errs = r.data.errors;
+                showAlert(Array.isArray(errs) ? errs.join(' ') : (r.data.detail || 'Failed to create goal.'), 'error');
+            }
+        });
+
+        load();
+
+        function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    })();
+    </script>
+</body>
+</html>

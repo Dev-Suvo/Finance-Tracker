@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Transaction | FinanceTracker</title>
+    <link rel="stylesheet" href="./static/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body data-page="create-transaction" data-require-wallet>
+    <div class="message-container"></div>
+    <div class="layout" id="app-layout">
+        <div class="main-content">
+
+            <div style="display:flex;justify-content:flex-end;margin-bottom:24px;">
+                <a href="select-wallet.html" class="wallet-chip" data-wallet-chip>
+                    <i class="bi bi-chevron-down" style="font-size:11px;color:var(--text-muted);"></i>
+                </a>
+            </div>
+
+            <div class="create-card">
+                <h1>Create Transaction</h1>
+                <p class="subtitle">Add a new income or expense</p>
+                <form id="tx-form">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <div class="transaction-type-btns">
+                            <button type="button" class="type-btn income" data-value="Income">
+                                <i class="bi bi-arrow-down"></i> Income</button>
+                            <button type="button" class="type-btn expense" data-value="Expense">
+                                <i class="bi bi-arrow-up"></i> Expense</button>
+                        </div>
+                        <input type="hidden" name="transaction_type" id="transaction_type" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" step="0.01" name="amount" class="form-control" placeholder="Enter amount" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" name="description" class="form-control" placeholder="Enter description" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select name="category" id="category" class="form-control" required>
+                            <option value="">Select Transaction Type First</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;padding:14px;margin-top:6px">
+                        Add Transaction
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="./static/config.js"></script>
+    <script src="./static/api.js"></script>
+    <script src="./static/layout.js"></script>
+    <script src="./static/app.js"></script>
+    <script>
+    document.getElementById('tx-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const form = new FormData(e.target);
+        const btn = e.target.querySelector('button[type=submit]');
+        btn.disabled = true;
+        const payload = {
+            transaction_type: form.get('transaction_type'),
+            amount: form.get('amount'),
+            description: form.get('description'),
+            category: form.get('category'),
+        };
+        const r = await API.post('wallets/' + API.getWalletId() + '/transactions/', payload);
+        btn.disabled = false;
+        if (r.ok) {
+            showAlert(r.data.detail || 'Transaction created.', 'success');
+            setTimeout(function () { window.location.href = 'transactions.html'; }, 800);
+        } else {
+            const errs = r.data.errors;
+            const msg = errs ? (Array.isArray(errs) ? errs.join(' ') : (errs.category ? errs.category.join(' ') : (errs.amount ? errs.amount.join(' ') : 'Transaction failed.'))) : (r.data.detail || 'Transaction failed.');
+            showAlert(msg, 'error');
+        }
+    });
+    </script>
+</body>
+</html>

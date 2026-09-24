@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Wallet | FinanceTracker</title>
+    <link rel="stylesheet" href="./static/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body data-page="select-wallet">
+    <div class="message-container"></div>
+    <div class="layout" id="app-layout">
+        <div class="main-content">
+            <div class="create-card">
+                <h1>Create Wallet</h1>
+                <p class="subtitle">Fill in your details to create your wallet</p>
+                <form id="wallet-form">
+                    <div class="form-group">
+                        <label>Wallet Name</label>
+                        <input type="text" name="wallet_name" class="form-control" placeholder="Enter wallet name" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;padding:14px;margin-top:8px;">
+                        Create Wallet
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="./static/config.js"></script>
+    <script src="./static/api.js"></script>
+    <script src="./static/layout.js"></script>
+    <script>
+    document.getElementById('wallet-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const walletName = new FormData(e.target).get('wallet_name');
+        const btn = e.target.querySelector('button[type=submit]');
+        btn.disabled = true;
+        const r = await API.post('wallets/', { wallet_name: walletName });
+        btn.disabled = false;
+        if (r.ok && r.data.wallet_id) {
+            API.setWallet(r.data.wallet_id, r.data.wallet_name);
+            window.location.href = 'dashboard.html';
+        } else {
+            showAlert(r.data.errors ? r.data.errors.join(', ') : 'Failed to create wallet.', 'error');
+        }
+    });
+    </script>
+</body>
+</html>
