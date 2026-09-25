@@ -1,6 +1,7 @@
 import csv
 import re
 import secrets
+import threading
 
 from decimal import Decimal
 
@@ -113,7 +114,9 @@ class RegisterView(APIView):
                 'Verify Your Email', 'Verify your email.',
                 f'FinanceTracker <{settings.EMAIL_HOST_USER}>', [user.email])
             msg.attach_alternative(verify_html, 'text/html')
-            msg.send()
+            # Send async: a blocked SMTP connection must never stall (or get the
+            # worker killed by gunicorn's timeout on) the HTTP response.
+            threading.Thread(target=msg.send, daemon=True).start()
         except Exception:
             pass
 
@@ -190,7 +193,7 @@ class PasswordResetRequestView(APIView):
                         subject, text_content,
                         f'FinanceTracker <{settings.EMAIL_HOST_USER}>', [email])
                     msg.attach_alternative(html_content, 'text/html')
-                    msg.send()
+                    threading.Thread(target=msg.send, daemon=True).start()
                 except Exception:
                     pass
 
@@ -777,7 +780,7 @@ class DepositToGoalView(APIView):
                     [request.user.email]
                 )
                 msg.attach_alternative(html, 'text/html')
-                msg.send()
+                threading.Thread(target=msg.send, daemon=True).start()
             except Exception:
                 pass
 

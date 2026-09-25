@@ -33,9 +33,9 @@ services:
       - key: ALLOWED_HOSTS
         value: "localhost,127.0.0.1"
       - key: CORS_ALLOWED_ORIGINS
-        value: "https://finance-tracker.vercel.app"
+        value: "https://finance-tracker-seven-sooty-47.vercel.app"
       - key: FRONTEND_URL
-        value: "https://finance-tracker.vercel.app"
+        value: "https://finance-tracker-seven-sooty-47.vercel.app"
       - key: EMAIL_HOST
         value: "smtp.gmail.com"
       - key: EMAIL_PORT
