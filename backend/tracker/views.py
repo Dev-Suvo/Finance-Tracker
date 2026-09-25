@@ -1,6 +1,7 @@
 import csv
 import re
 import secrets
+import smtplib
 import threading
 
 from decimal import Decimal
@@ -35,6 +36,53 @@ from .serializers import (
 )
 
 CURRENCY = 'Rs.'
+
+
+def send_email_async(msg):
+    """Send msg in a background thread so a slow or blocked SMTP server can
+    never stall the HTTP response. Tries the configured port first, then the
+    other common SMTP port. Prints the outcome to stdout so every success and
+    failure shows up in the Render Logs tab instead of vanishing silently."""
+
+    def worker():
+        # Non-SMTP backends (e.g. in-memory during tests) work as-is.
+        if 'smtp' not in (settings.EMAIL_BACKEND or ''):
+            try:
+                msg.send()
+                print(f'[email] sent via {settings.EMAIL_BACKEND}', flush=True)
+            except Exception as exc:
+                print(f'[email] FAILED via {settings.EMAIL_BACKEND}: {type(exc).__name__}: {exc}', flush=True)
+            return
+
+        host = settings.EMAIL_HOST
+        user = settings.EMAIL_HOST_USER
+        password = settings.EMAIL_HOST_PASSWORD
+        timeout = settings.EMAIL_TIMEOUT or 15
+        primary = int(settings.EMAIL_PORT or 587)
+        fallback = 465 if primary != 465 else 587
+
+        def attempt(port):
+            if port == 465:
+                conn = smtplib.SMTP_SSL(host, port, timeout=timeout)
+            else:
+                conn = smtplib.SMTP(host, port, timeout=timeout)
+                conn.starttls()
+            try:
+                conn.login(user, password)
+                conn.sendmail(msg.from_email, msg.to, msg.message().as_string())
+            finally:
+                conn.close()
+
+        for port in (primary, fallback):
+            try:
+                attempt(port)
+                print(f'[email] sent OK via {host}:{port}', flush=True)
+                return
+            except Exception as exc:
+                print(f'[email] FAILED via {host}:{port}: {type(exc).__name__}: {exc}', flush=True)
+        print('[email] NOT SENT: every SMTP attempt failed', flush=True)
+
+    threading.Thread(target=worker, daemon=True).start()
 
 
 def get_category_breakdown(wallet, tx_type):
@@ -116,7 +164,7 @@ class RegisterView(APIView):
             msg.attach_alternative(verify_html, 'text/html')
             # Send async: a blocked SMTP connection must never stall (or get the
             # worker killed by gunicorn's timeout on) the HTTP response.
-            threading.Thread(target=msg.send, daemon=True).start()
+            send_email_async(msg)
         except Exception:
             pass
 
@@ -193,7 +241,7 @@ class PasswordResetRequestView(APIView):
                         subject, text_content,
                         f'FinanceTracker <{settings.EMAIL_HOST_USER}>', [email])
                     msg.attach_alternative(html_content, 'text/html')
-                    threading.Thread(target=msg.send, daemon=True).start()
+                    send_email_async(msg)
                 except Exception:
                     pass
 
@@ -780,7 +828,7 @@ class DepositToGoalView(APIView):
                     [request.user.email]
                 )
                 msg.attach_alternative(html, 'text/html')
-                threading.Thread(target=msg.send, daemon=True).start()
+                send_email_async(msg)
             except Exception:
                 pass
 

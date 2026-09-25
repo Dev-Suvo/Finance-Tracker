@@ -13,7 +13,7 @@
     <div class="layout" id="app-layout">
         <div class="main-content">
 
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+            <div class="page-header">
                 <div>
                     <h1 style="font-size:20px;font-weight:700;">Dashboard</h1>
                     <p style="font-size:13px;color:var(--text-muted);margin-top:2px;">Overview of your wallet</p>
@@ -51,7 +51,7 @@
                     <a href="create-transaction.html" class="btn btn-primary btn-sm">+ Add Transaction</a>
                 </div>
 
-                <div id="tx-table" style="display:none;">
+                <div id="tx-table" style="overflow-x:auto;display:none;">
                     <table class="table">
                         <thead>
                             <tr>

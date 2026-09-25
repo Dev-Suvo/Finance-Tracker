@@ -2188,3 +2188,66 @@ form.filter-row .btn {
     .values-grid { grid-template-columns: 1fr; }
     .page-hero h1 { font-size: 28px; }
 }
+
+/* =========================
+   MOBILE: menu, filters, headers
+   (kept last so it overrides the earlier .sidebar { display: none } rule)
+   ========================= */
+
+.mobile-menu-btn {
+    display: none;
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 1200;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 10px;
+    background: var(--purple);
+    color: #fff;
+    font-size: 22px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(109, 40, 217, .35);
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, .55);
+    z-index: 1250;
+}
+
+.sidebar-overlay.show { display: block; }
+
+@media (max-width: 768px) {
+    .mobile-menu-btn { display: flex; }
+
+    .sidebar.mobile-open {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        height: 100dvh;
+        width: 270px;
+        z-index: 1300;
+    }
+
+    #app-layout .main-content { padding-top: 68px; }
+
+    /* Search/filter rows stack instead of overflowing sideways */
+    form.filter-row { flex-wrap: wrap !important; padding: 14px; }
+    form.filter-row .form-group { flex: 1 1 calc(50% - 5px); }
+    form.filter-row .form-group.search-field { flex: 1 1 100%; min-width: 0; }
+    form.filter-row .form-control { width: 100%; min-width: 0; }
+    form.filter-row select.form-control,
+    form.filter-row input[type="date"].form-control { min-width: 0; }
+    form.filter-row .btn { flex: 1 1 calc(50% - 5px); }
+
+    /* Page headers: title on its own line, buttons wrap below */
+    .page-header { flex-wrap: wrap; }
+}

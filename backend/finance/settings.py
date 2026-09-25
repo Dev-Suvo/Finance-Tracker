@@ -152,6 +152,10 @@ import sys
 
 RUNNING_TESTS = 'test' in sys.argv
 
+# Tests never touch the network: queue emails in-memory instead of SMTP.
+if RUNNING_TESTS:
+    EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+
 if not DEBUG and not RUNNING_TESTS:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True

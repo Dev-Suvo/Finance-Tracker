@@ -33,7 +33,9 @@ function buildSidebar(active) {
         <div class="sidebar-menu">
             <a href="#" id="logout-link"><i class="bi bi-box-arrow-right"></i> Logout</a>
         </div>
-    </div>`;
+    </div>
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu"><i class="bi bi-list"></i></button>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>`;
     return html;
 }
 
@@ -43,6 +45,25 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     const active = document.body.dataset.page || '';
     layoutEl.insertAdjacentHTML('afterbegin', buildSidebar(active));
+
+    // Mobile menu (hamburger → slide-in sidebar)
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const menuOverlay = document.getElementById('sidebar-overlay');
+    const sidebarEl = document.querySelector('.sidebar');
+    function closeMobileMenu() {
+        if (sidebarEl) sidebarEl.classList.remove('mobile-open');
+        if (menuOverlay) menuOverlay.classList.remove('show');
+    }
+    if (menuBtn && sidebarEl && menuOverlay) {
+        menuBtn.addEventListener('click', function () {
+            sidebarEl.classList.toggle('mobile-open');
+            menuOverlay.classList.toggle('show');
+        });
+        menuOverlay.addEventListener('click', closeMobileMenu);
+        sidebarEl.addEventListener('click', function (e) {
+            if (e.target.closest('a')) closeMobileMenu();
+        });
+    }
 
     // Auth guard
     const me = await API.requireAuth();

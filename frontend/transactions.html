@@ -13,12 +13,12 @@
     <div class="layout" id="app-layout">
         <div class="main-content">
 
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+            <div class="page-header">
                 <div>
                     <h1 style="font-size:20px;font-weight:700;">All Transactions</h1>
                     <p style="font-size:13px;color:var(--text-muted);margin-top:2px;" data-wallet-chip></p>
                 </div>
-                <div style="display:flex;gap:10px;align-items:center;">
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
                     <button type="button" class="btn btn-outline btn-sm" onclick="exportTx('csv')"><i class="bi bi-filetype-csv"></i> CSV</button>
                     <button type="button" class="btn btn-outline btn-sm" onclick="exportTx('pdf')"><i class="bi bi-filetype-pdf"></i> PDF</button>
                     <a href="dashboard.html" class="btn btn-outline btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
