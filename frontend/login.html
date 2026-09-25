@@ -82,6 +82,10 @@
                     Don't have an account? <a href="register.html">Create one free</a>
                 </p>
 
+                <div id="verify-resend" style="display:none;margin-top:14px;text-align:center;">
+                    <button type="button" class="btn btn-outline btn-sm" id="resend-btn">Resend verification email</button>
+                </div>
+
                 <div class="security-badges">
                     <div class="sec-badge"><i class="bi bi-lock-fill"></i> SSL Secured</div>
                     <div class="sec-badge"><i class="bi bi-shield-half"></i> Data Private</div>
@@ -100,6 +104,7 @@
         e.preventDefault();
         const form = new FormData(e.target);
         const btn = e.target.querySelector('button[type=submit]');
+        document.getElementById('verify-resend').style.display = 'none';
         btn.disabled = true;
         const r = await API.login(form.get('username'), form.get('password'));
         btn.disabled = false;
@@ -108,7 +113,21 @@
         } else {
             const msg = (r.data && r.data.detail) || 'Login failed. Please try again.';
             showAlert(msg, 'error');
+            if (r.status === 403) {
+                document.getElementById('verify-resend').style.display = 'block';
+            }
         }
+    });
+
+    document.getElementById('resend-btn').addEventListener('click', async function () {
+        const form = new FormData(document.getElementById('login-form'));
+        this.disabled = true;
+        const r = await API.post('auth/resend-verification/', {
+            username: form.get('username'),
+            password: form.get('password'),
+        });
+        this.disabled = false;
+        showAlert((r.data && r.data.detail) || 'Request sent.', r.ok ? 'success' : 'error');
     });
     </script>
 </body>

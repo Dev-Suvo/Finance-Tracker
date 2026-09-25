@@ -55,10 +55,21 @@ const API = {
         }
 
         // 401 -> try refreshing once, then retry
-        if (response.status === 401 && API.getRefresh() && !options._retried) {
+        if (response.status === 401 && !options._retried) {
             options._retried = true;
-            const refreshed = await API.refreshTokens();
-            if (refreshed) return API.request(path, options);
+            if (API.getRefresh()) {
+                const refreshed = await API.refreshTokens();
+                if (refreshed) return API.request(path, options);
+            }
+            // Refresh failed or absent: the stored access token is bad
+            // (e.g. it references a deleted user -> "User not found").
+            // Drop the stale tokens and retry once WITHOUT auth so AllowAny
+            // endpoints (register/login) succeed on the first submit.
+            if (options.headers['Authorization']) {
+                delete options.headers['Authorization'];
+                API.clearTokens();
+                return API.request(path, options);
+            }
         }
 
         return API._parse(response, options.parseAs);

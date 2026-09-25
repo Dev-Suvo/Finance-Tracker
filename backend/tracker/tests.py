@@ -1,9 +1,10 @@
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.core import mail
+from django.test import TestCase, override_settings
 
-from .models import Wallet, Transaction
+from .models import Wallet, Transaction, UserProfile
 
 
 class APITestBase(TestCase):
@@ -150,6 +151,16 @@ class AuthTests(TestCase):
         }, HTTP_HOST='localhost')
         self.assertEqual(r.status_code, 201, r.content)
 
+        # login is blocked until the emailed verification link is used
+        r = self.client.post('/api/auth/token/',
+                             {'username': 'newuser', 'password': 'GuitarHero7!'},
+                             HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 403, r.content)
+
+        profile = UserProfile.objects.get(user__username='newuser')
+        r = self.client.get(f'/api/auth/verify-email/{profile.email_token}/', HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 200, r.content)
+
         r = self.client.post('/api/auth/token/',
                              {'username': 'newuser', 'password': 'GuitarHero7!'},
                              HTTP_HOST='localhost')
@@ -171,3 +182,65 @@ class AuthTests(TestCase):
         }, HTTP_HOST='localhost')
         self.assertEqual(r.status_code, 400)
         self.assertIn('do not match', r.json()['detail'])
+
+
+class EmailVerificationTests(TestCase):
+    BASE = '/api'
+
+    def _register(self, username='verifyuser', email='verify@example.com'):
+        r = self.client.post(f'{self.BASE}/auth/register/', {
+            'first_name': 'V', 'last_name': 'U', 'username': username,
+            'email': email, 'phone_number': '9876543210',
+            'password': 'GuitarHero7!', 'confirm_password': 'GuitarHero7!',
+        }, HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 201, r.content)
+
+    @override_settings(ENFORCE_EMAIL_VERIFICATION=True)
+    def test_login_blocked_until_email_verified(self):
+        self._register()
+        r = self.client.post(f'{self.BASE}/auth/token/',
+                             {'username': 'verifyuser', 'password': 'GuitarHero7!'},
+                             HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 403, r.content)
+        self.assertIn('not verified', r.json()['detail'].lower())
+
+        profile = UserProfile.objects.get(user__username='verifyuser')
+        r = self.client.get(f'{self.BASE}/auth/verify-email/{profile.email_token}/', HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 200, r.content)
+
+        r = self.client.post(f'{self.BASE}/auth/token/',
+                             {'username': 'verifyuser', 'password': 'GuitarHero7!'},
+                             HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 200, r.content)
+
+    @override_settings(ENFORCE_EMAIL_VERIFICATION=True)
+    def test_resend_verification_sends_email(self):
+        self._register()
+        before = len(getattr(mail, 'outbox', []))
+        r = self.client.post(f'{self.BASE}/auth/resend-verification/',
+                             {'username': 'verifyuser', 'password': 'GuitarHero7!'},
+                             HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertEqual(len(mail.outbox), before + 1)
+
+        r = self.client.post(f'{self.BASE}/auth/resend-verification/',
+                             {'username': 'verifyuser', 'password': 'WrongPass1!'},
+                             HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 401)
+
+    @override_settings(ENFORCE_EMAIL_VERIFICATION=True)
+    def test_unverified_login_can_be_disabled(self):
+        self._register()
+        with override_settings(ENFORCE_EMAIL_VERIFICATION=False):
+            r = self.client.post(f'{self.BASE}/auth/token/',
+                                 {'username': 'verifyuser', 'password': 'GuitarHero7!'},
+                                 HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 200, r.content)
+
+    @override_settings(ENFORCE_EMAIL_VERIFICATION=True)
+    def test_superuser_without_profile_can_login(self):
+        User.objects.create_superuser('bossadmin', 'boss@example.com', 'AdminPass1!')
+        r = self.client.post(f'{self.BASE}/auth/token/',
+                             {'username': 'bossadmin', 'password': 'AdminPass1!'},
+                             HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 200, r.content)

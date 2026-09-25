@@ -152,6 +152,10 @@ import sys
 
 RUNNING_TESTS = 'test' in sys.argv
 
+# Block login until the user clicks the emailed verification link.
+# Flip to "False" in render.yaml + push if email delivery is ever broken.
+ENFORCE_EMAIL_VERIFICATION = env.bool('ENFORCE_EMAIL_VERIFICATION', default=True)
+
 # Tests never touch the network: queue emails in-memory instead of SMTP.
 if RUNNING_TESTS:
     EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'

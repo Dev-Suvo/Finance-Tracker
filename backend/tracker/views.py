@@ -7,6 +7,7 @@ import threading
 from decimal import Decimal
 
 from django.conf import settings
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
 from django.db import models, transaction
@@ -22,6 +23,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -82,7 +84,29 @@ def send_email_async(msg):
                 print(f'[email] FAILED via {host}:{port}: {type(exc).__name__}: {exc}', flush=True)
         print('[email] NOT SENT: every SMTP attempt failed', flush=True)
 
-    threading.Thread(target=worker, daemon=True).start()
+    if getattr(settings, 'RUNNING_TESTS', False):
+        worker()  # synchronous in tests so assertions on mail.outbox are deterministic
+    else:
+        threading.Thread(target=worker, daemon=True).start()
+
+
+def _send_verification_email(user):
+    """Queue the email-verification message for user (reusing/regenerating token)."""
+    profile = UserProfile.objects.filter(user=user).first()
+    if not profile:
+        return
+    if not profile.email_token:
+        profile.email_token = secrets.token_hex(32)
+        profile.save()
+    verify_html = render_to_string('email_verify.html', {
+        'frontend_url': settings.FRONTEND_URL,
+        'token': profile.email_token,
+    })
+    msg = EmailMultiAlternatives(
+        'Verify Your Email', 'Verify your email.',
+        f'FinanceTracker <{settings.EMAIL_HOST_USER}>', [user.email])
+    msg.attach_alternative(verify_html, 'text/html')
+    send_email_async(msg)
 
 
 def get_category_breakdown(wallet, tx_type):
@@ -154,22 +178,51 @@ class RegisterView(APIView):
         UserProfile.objects.create(user=user, phone_number=data['phone_number'], email_token=email_token)
 
         try:
-            verify_html = render_to_string('email_verify.html', {
-                'frontend_url': settings.FRONTEND_URL,
-                'token': email_token,
-            })
-            msg = EmailMultiAlternatives(
-                'Verify Your Email', 'Verify your email.',
-                f'FinanceTracker <{settings.EMAIL_HOST_USER}>', [user.email])
-            msg.attach_alternative(verify_html, 'text/html')
-            # Send async: a blocked SMTP connection must never stall (or get the
-            # worker killed by gunicorn's timeout on) the HTTP response.
-            send_email_async(msg)
+            _send_verification_email(user)
         except Exception:
             pass
 
         return Response({'detail': 'Account created. Check your email to verify.'},
                         status=status.HTTP_201_CREATED)
+
+
+class LoginView(TokenObtainPairView):
+    """JWT login. Refuses accounts whose email is not yet verified
+    (kill-switch: ENFORCE_EMAIL_VERIFICATION setting). Accounts without a
+    UserProfile (e.g. Django-admin superusers) are always allowed."""
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200 and getattr(settings, 'ENFORCE_EMAIL_VERIFICATION', True):
+            user = User.objects.filter(username=request.data.get('username', '')).first()
+            profile = UserProfile.objects.filter(user=user).first() if user else None
+            if profile and not profile.email_verified:
+                return Response(
+                    {'detail': 'Email not verified. Check your inbox for the verification '
+                               'link, or resend it below.'},
+                    status=status.HTTP_403_FORBIDDEN)
+        return response
+
+
+class ResendVerificationView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username', '').strip()
+        password = request.data.get('password', '')
+        user = authenticate(username=username, password=password)
+        if user is None:
+            return Response({'detail': 'Invalid username or password.'},
+                            status=status.HTTP_401_UNAUTHORIZED)
+        profile = UserProfile.objects.filter(user=user).first()
+        if not profile or profile.email_verified:
+            return Response({'detail': 'This account is already verified. You can log in.'})
+        try:
+            _send_verification_email(user)
+        except Exception:
+            pass
+        return Response({'detail': 'A new verification email has been sent. '
+                                    'Check your inbox and spam folder.'})
 
 
 class VerifyEmailView(APIView):
