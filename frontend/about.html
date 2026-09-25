@@ -21,6 +21,7 @@
                 <a href="security.html">Security</a>
                 <a href="pricing.html">Pricing</a>
                 <a href="about.html" class="active">About</a>
+                <a href="#" id="admin-link" target="_blank" rel="noopener">Admin</a>
             </div>
             <div class="nav-actions">
                 <a href="login.html" class="btn btn-outline btn-sm">Log In</a>
@@ -114,5 +115,9 @@
         </footer>
 
     </div>
+    <script src="./static/config.js"></script>
+    <script>
+        document.getElementById('admin-link').href = (window.API_BASE_URL || 'http://localhost:8000') + '/admin/';
+    </script>
 </body>
 </html>
