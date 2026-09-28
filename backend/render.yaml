@@ -46,10 +46,12 @@ services:
         sync: false
       - key: EMAIL_HOST_PASSWORD
         sync: false
+      - key: SENDGRID_API_KEY
+        sync: false
       - key: DEFAULT_FROM_EMAIL
-        value: "FinanceTracker <noreply@financetracker.com>"
+        value: "FinanceTracker <devsuvo20@gmail.com>"
       - key: ENFORCE_EMAIL_VERIFICATION
-        value: "True"
+        value: "False"
       - key: DJANGO_SUPERUSER_USERNAME
         sync: false
       - key: DJANGO_SUPERUSER_EMAIL

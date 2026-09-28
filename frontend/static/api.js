@@ -43,7 +43,11 @@ const API = {
         }
 
         const access = API.getAccess();
-        if (access) options.headers['Authorization'] = 'Bearer ' + access;
+        // Auth endpoints must never carry a stored token: a stale one turns a
+        // plain login/register into 401 -> refresh -> retry (3 slow round-trips)
+        // before the real response arrives. These endpoints don't need it.
+        const noAuth = /^auth\/(token\/|register\/|resend-verification\/|password-reset\/)/.test(path);
+        if (access && !noAuth) options.headers['Authorization'] = 'Bearer ' + access;
 
         let response;
         try {
@@ -52,6 +56,12 @@ const API = {
             // Network/CORS failure — return a normal error object so UI can
             // re-enable buttons and show a message instead of dying silently.
             return { ok: false, status: 0, data: { detail: 'Cannot reach the server. Please try again in a moment.' } };
+        }
+
+        // 401 on a no-auth endpoint = bad credentials (or server error):
+        // refreshing/retrying cannot help, so return it immediately.
+        if (response.status === 401 && noAuth) {
+            return API._parse(response, options.parseAs);
         }
 
         // 401 -> try refreshing once, then retry

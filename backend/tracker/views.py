@@ -1,10 +1,14 @@
 import csv
+import json
 import re
 import secrets
 import smtplib
 import threading
+import urllib.error
+import urllib.request
 
 from decimal import Decimal
+from email.utils import parseaddr
 
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -40,6 +44,46 @@ from .serializers import (
 CURRENCY = 'Rs.'
 
 
+def send_email_sendgrid(msg):
+    """Send msg through SendGrid's HTTPS API (port 443).
+
+    This is the supported way to send email from a Render FREE instance:
+    Render blocks outbound SMTP ports 25/465/587 on free web services
+    (render.com/changelog, Sept 2025) while HTTPS stays open. Raises on any
+    failure so callers can log the exact reason."""
+    sender_name, sender_addr = parseaddr(msg.from_email or '')
+    if not sender_addr:
+        sender_name, sender_addr = parseaddr(settings.DEFAULT_FROM_EMAIL)
+
+    contents = [{'type': 'text/plain', 'value': msg.body or ''}]
+    for body, mimetype in getattr(msg, 'alternatives', None) or []:
+        if mimetype == 'text/html':
+            contents.append({'type': 'text/html', 'value': body})
+
+    payload = {
+        'personalizations': [{'to': [{'email': addr} for addr in msg.to]}],
+        'from': {'email': sender_addr, 'name': sender_name} if sender_name else {'email': sender_addr},
+        'subject': msg.subject or '',
+        'content': contents,
+    }
+    request = urllib.request.Request(
+        'https://api.sendgrid.com/v3/mail/send',
+        data=json.dumps(payload).encode('utf-8'),
+        headers={
+            'Authorization': f'Bearer {settings.SENDGRID_API_KEY}',
+            'Content-Type': 'application/json',
+        },
+        method='POST',
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=settings.EMAIL_TIMEOUT or 15) as resp:
+            if resp.status not in (200, 202):
+                raise RuntimeError(f'SendGrid returned HTTP {resp.status}')
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode(errors='replace')[:500]
+        raise RuntimeError(f'SendGrid HTTP {exc.code}: {detail}') from exc
+
+
 def send_email_async(msg):
     """Send msg in a background thread so a slow or blocked SMTP server can
     never stall the HTTP response. Tries the configured port first, then the
@@ -47,6 +91,23 @@ def send_email_async(msg):
     failure shows up in the Render Logs tab instead of vanishing silently."""
 
     def worker():
+        # Self-describing config line: answers "is SMTP even configured?" in
+        # the logs without exposing any secret values.
+        print(f'[email-config] backend={settings.EMAIL_BACKEND} host={settings.EMAIL_HOST} '
+              f'port={settings.EMAIL_PORT} tls={settings.EMAIL_USE_TLS} '
+              f'user={"set" if settings.EMAIL_HOST_USER else "EMPTY"} '
+              f'pass={"set" if settings.EMAIL_HOST_PASSWORD else "EMPTY"} '
+              f'sendgrid_api={"set" if settings.SENDGRID_API_KEY else "EMPTY"}', flush=True)
+
+        # HTTPS API path (works on Render FREE, where SMTP ports are blocked).
+        if settings.SENDGRID_API_KEY:
+            try:
+                send_email_sendgrid(msg)
+                print('[email] sent OK via SendGrid API (HTTPS, port 443)', flush=True)
+            except Exception as exc:
+                print(f'[email] FAILED via SendGrid API: {type(exc).__name__}: {exc}', flush=True)
+            return
+
         # Non-SMTP backends (e.g. in-memory during tests) work as-is.
         if 'smtp' not in (settings.EMAIL_BACKEND or ''):
             try:
@@ -82,7 +143,8 @@ def send_email_async(msg):
                 return
             except Exception as exc:
                 print(f'[email] FAILED via {host}:{port}: {type(exc).__name__}: {exc}', flush=True)
-        print('[email] NOT SENT: every SMTP attempt failed', flush=True)
+        print('[email] NOT SENT: every SMTP attempt failed '
+              '(Render FREE blocks SMTP ports 25/465/587 - set SENDGRID_API_KEY to send over HTTPS)', flush=True)
 
     if getattr(settings, 'RUNNING_TESTS', False):
         worker()  # synchronous in tests so assertions on mail.outbox are deterministic
@@ -179,8 +241,8 @@ class RegisterView(APIView):
 
         try:
             _send_verification_email(user)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f'[email] queue FAILED (register): {type(e).__name__}: {e}', flush=True)
 
         return Response({'detail': 'Account created. Check your email to verify.'},
                         status=status.HTTP_201_CREATED)
@@ -219,8 +281,8 @@ class ResendVerificationView(APIView):
             return Response({'detail': 'This account is already verified. You can log in.'})
         try:
             _send_verification_email(user)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f'[email] queue FAILED (resend): {type(e).__name__}: {e}', flush=True)
         return Response({'detail': 'A new verification email has been sent. '
                                     'Check your inbox and spam folder.'})
 
@@ -295,8 +357,8 @@ class PasswordResetRequestView(APIView):
                         f'FinanceTracker <{settings.EMAIL_HOST_USER}>', [email])
                     msg.attach_alternative(html_content, 'text/html')
                     send_email_async(msg)
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(f'[email] queue FAILED (reset): {type(e).__name__}: {e}', flush=True)
 
         if last_reset:
             request.session['password_reset_time'] = timezone.now().isoformat()
@@ -882,8 +944,8 @@ class DepositToGoalView(APIView):
                 )
                 msg.attach_alternative(html, 'text/html')
                 send_email_async(msg)
-            except Exception:
-                pass
+            except Exception as e:
+                print(f'[email] queue FAILED (goal-complete): {type(e).__name__}: {e}', flush=True)
 
         return Response({'detail': f'Deposited {CURRENCY} {amount} to {goal.name}.'},
                         status=status.HTTP_201_CREATED)
