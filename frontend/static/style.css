@@ -2251,3 +2251,24 @@ form.filter-row .btn {
     /* Page headers: title on its own line, buttons wrap below */
     .page-header { flex-wrap: wrap; }
 }
+
+/* ---- Password show/hide toggle ------------------------------------------ */
+.pw-wrap { position: relative; display: block; }
+.pw-wrap .form-control { width: 100%; padding-right: 44px; }
+.pw-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: 0;
+    padding: 6px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    z-index: 2;
+}
+.pw-toggle:hover, .pw-toggle:focus { color: var(--purple); outline: none; }

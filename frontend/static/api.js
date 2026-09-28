@@ -50,12 +50,29 @@ const API = {
         if (access && !noAuth) options.headers['Authorization'] = 'Bearer ' + access;
 
         let response;
+        // If a request hangs >6s (classic Render free cold start after idle),
+        // tell the user what's happening instead of looking frozen.
+        const slowTimer = setTimeout(function () {
+            const wrap = document.querySelector('.message-container');
+            if (wrap && !document.getElementById('api-slow-toast')) {
+                const t = document.createElement('div');
+                t.className = 'alert info';
+                t.id = 'api-slow-toast';
+                t.innerHTML = '<i class="bi bi-hourglass-split"></i> Waking up the server — the first request after idle can take up to a minute. Please wait…';
+                wrap.appendChild(t);
+                window.scrollTo(0, 0);
+            }
+        }, 6000);
         try {
             response = await fetch(API_BASE + path.replace(/^\/+/, ''), options);
         } catch (e) {
             // Network/CORS failure — return a normal error object so UI can
             // re-enable buttons and show a message instead of dying silently.
             return { ok: false, status: 0, data: { detail: 'Cannot reach the server. Please try again in a moment.' } };
+        } finally {
+            clearTimeout(slowTimer);
+            const toast = document.getElementById('api-slow-toast');
+            if (toast) toast.remove();
         }
 
         // 401 on a no-auth endpoint = bad credentials (or server error):
@@ -175,5 +192,38 @@ function showAlert(message, type) {
     }, 4000);
 }
 
+/* ---- Password show/hide toggles ---------------------------------------- */
+function initPasswordToggles(root) {
+    const scope = root || document;
+    scope.querySelectorAll('input[type="password"]:not([data-pw-toggle])').forEach(function (input) {
+        input.setAttribute('data-pw-toggle', '1');
+        const wrap = document.createElement('span');
+        wrap.className = 'pw-wrap';
+        input.parentNode.insertBefore(wrap, input);
+        wrap.appendChild(input);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pw-toggle';
+        btn.setAttribute('aria-label', 'Show password');
+        btn.innerHTML = '<i class="bi bi-eye"></i>';
+        btn.addEventListener('click', function () {
+            const show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            btn.innerHTML = show ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+            btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+            input.focus();
+        });
+        wrap.appendChild(btn);
+    });
+}
+
 window.API = API;
 window.showAlert = showAlert;
+window.initPasswordToggles = initPasswordToggles;
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { initPasswordToggles(); });
+} else {
+    initPasswordToggles();
+}

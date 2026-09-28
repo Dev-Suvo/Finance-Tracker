@@ -59,11 +59,12 @@
     <script src="./static/layout.js"></script>
     <script>
     (async function () {
+        const walletsPromise = API.get('wallets/');
         const me = await API.requireAuth();
         if (!me) return;
         document.getElementById('welcome-name').textContent = (me.first_name + ' ' + me.last_name).trim() || me.username;
 
-        API.get('wallets/').then(function (r) {
+        walletsPromise.then(function (r) {
             if (!r.ok) return;
             const wallets = r.data.wallets;
             document.getElementById('wallet-count').textContent = 'You have ' + wallets.length + ' Wallet' + (wallets.length === 1 ? '' : 's');
