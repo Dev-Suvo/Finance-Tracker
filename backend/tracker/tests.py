@@ -8,6 +8,13 @@ from django.test import TestCase, override_settings
 from .models import Wallet, Transaction, UserProfile
 
 
+class HealthEndpointTests(TestCase):
+    def test_health_returns_200(self):
+        r = self.client.get('/health/', HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json(), {'status': 'ok'})
+
+
 class APITestBase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
