@@ -47,41 +47,84 @@ CURRENCY = 'Rs.'
 def send_email_sendgrid(msg):
     """Send msg through SendGrid's HTTPS API (port 443).
 
-    This is the supported way to send email from a Render FREE instance:
-    Render blocks outbound SMTP ports 25/465/587 on free web services
-    (render.com/changelog, Sept 2025) while HTTPS stays open. Raises on any
-    failure so callers can log the exact reason."""
+    Render FREE blocks outbound SMTP ports 25/465/587 (render.com/changelog,
+    Sept 2025) while HTTPS stays open. Raises on any failure so callers can
+    log the exact reason."""
+    _send_via_json_api(
+        'https://api.sendgrid.com/v3/mail/send',
+        {'Authorization': f'Bearer {settings.SENDGRID_API_KEY}'},
+        _sendgrid_payload(msg),
+        'SendGrid',
+    )
+
+
+def send_email_brevo(msg):
+    """Send msg through Brevo's HTTPS API (port 443) — free forever, 300/day."""
+    _send_via_json_api(
+        'https://api.brevo.com/v3/smtp/email',
+        {'api-key': settings.BREVO_API_KEY},
+        _brevo_payload(msg),
+        'Brevo',
+    )
+
+
+def _sender_address(msg):
     sender_name, sender_addr = parseaddr(msg.from_email or '')
     if not sender_addr:
         sender_name, sender_addr = parseaddr(settings.DEFAULT_FROM_EMAIL)
+    return sender_name, sender_addr
 
-    contents = [{'type': 'text/plain', 'value': msg.body or ''}]
+
+def _html_alternative(msg):
     for body, mimetype in getattr(msg, 'alternatives', None) or []:
         if mimetype == 'text/html':
-            contents.append({'type': 'text/html', 'value': body})
+            return body
+    return None
 
-    payload = {
+
+def _sendgrid_payload(msg):
+    sender_name, sender_addr = _sender_address(msg)
+    contents = [{'type': 'text/plain', 'value': msg.body or ''}]
+    html = _html_alternative(msg)
+    if html:
+        contents.append({'type': 'text/html', 'value': html})
+    return {
         'personalizations': [{'to': [{'email': addr} for addr in msg.to]}],
         'from': {'email': sender_addr, 'name': sender_name} if sender_name else {'email': sender_addr},
         'subject': msg.subject or '',
         'content': contents,
     }
+
+
+def _brevo_payload(msg):
+    sender_name, sender_addr = _sender_address(msg)
+    payload = {
+        'sender': {'email': sender_addr, 'name': sender_name} if sender_name else {'email': sender_addr},
+        'to': [{'email': addr} for addr in msg.to],
+        'subject': msg.subject or '',
+        'textContent': msg.body or '',
+    }
+    html = _html_alternative(msg)
+    if html:
+        payload['htmlContent'] = html
+    return payload
+
+
+def _send_via_json_api(url, headers, payload, label):
+    """POST payload to an email provider's HTTPS API. Raises on any failure."""
     request = urllib.request.Request(
-        'https://api.sendgrid.com/v3/mail/send',
+        url,
         data=json.dumps(payload).encode('utf-8'),
-        headers={
-            'Authorization': f'Bearer {settings.SENDGRID_API_KEY}',
-            'Content-Type': 'application/json',
-        },
+        headers=dict(headers, **{'Content-Type': 'application/json'}),
         method='POST',
     )
     try:
         with urllib.request.urlopen(request, timeout=settings.EMAIL_TIMEOUT or 15) as resp:
-            if resp.status not in (200, 202):
-                raise RuntimeError(f'SendGrid returned HTTP {resp.status}')
+            if resp.status not in (200, 201, 202):
+                raise RuntimeError(f'{label} returned HTTP {resp.status}')
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode(errors='replace')[:500]
-        raise RuntimeError(f'SendGrid HTTP {exc.code}: {detail}') from exc
+        raise RuntimeError(f'{label} HTTP {exc.code}: {detail}') from exc
 
 
 def send_email_async(msg):
@@ -97,9 +140,17 @@ def send_email_async(msg):
               f'port={settings.EMAIL_PORT} tls={settings.EMAIL_USE_TLS} '
               f'user={"set" if settings.EMAIL_HOST_USER else "EMPTY"} '
               f'pass={"set" if settings.EMAIL_HOST_PASSWORD else "EMPTY"} '
+              f'brevo_api={"set" if settings.BREVO_API_KEY else "EMPTY"} '
               f'sendgrid_api={"set" if settings.SENDGRID_API_KEY else "EMPTY"}', flush=True)
 
-        # HTTPS API path (works on Render FREE, where SMTP ports are blocked).
+        # HTTPS API paths (work on Render FREE, where SMTP ports are blocked).
+        if settings.BREVO_API_KEY:
+            try:
+                send_email_brevo(msg)
+                print('[email] sent OK via Brevo API (HTTPS, port 443)', flush=True)
+            except Exception as exc:
+                print(f'[email] FAILED via Brevo API: {type(exc).__name__}: {exc}', flush=True)
+            return
         if settings.SENDGRID_API_KEY:
             try:
                 send_email_sendgrid(msg)

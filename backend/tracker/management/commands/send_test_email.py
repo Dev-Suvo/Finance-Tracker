@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.core.management.base import BaseCommand, CommandError
 
-from tracker.views import send_email_sendgrid
+from tracker.views import send_email_brevo, send_email_sendgrid
 
 
 class Command(BaseCommand):
@@ -23,6 +23,7 @@ class Command(BaseCommand):
             f'tls={settings.EMAIL_USE_TLS} '
             f'user={"set" if settings.EMAIL_HOST_USER else "EMPTY"} '
             f'pass={"set" if settings.EMAIL_HOST_PASSWORD else "EMPTY"} '
+            f'brevo_api={"set" if settings.BREVO_API_KEY else "EMPTY"} '
             f'sendgrid_api={"set" if settings.SENDGRID_API_KEY else "EMPTY"}'
         )
 
@@ -33,7 +34,15 @@ class Command(BaseCommand):
             [to],
         )
 
-        # HTTPS API path: the only one that works on Render FREE (SMTP blocked).
+        # HTTPS API paths: the only ones that work on Render FREE (SMTP blocked).
+        if settings.BREVO_API_KEY:
+            self.stdout.write('using Brevo HTTPS API (port 443) ...')
+            try:
+                send_email_brevo(msg)
+            except Exception as exc:
+                raise CommandError(f'email NOT sent via Brevo: {type(exc).__name__}: {exc}')
+            self.stdout.write(self.style.SUCCESS(f'SENT to {to} via Brevo API (HTTPS)'))
+            return
         if settings.SENDGRID_API_KEY:
             self.stdout.write('using SendGrid HTTPS API (port 443) ...')
             try:
@@ -67,6 +76,6 @@ class Command(BaseCommand):
         hint = ''
         if isinstance(last_error, OSError) and getattr(last_error, 'errno', None) == 101:
             hint = (' [Render FREE blocks outbound SMTP ports 25/465/587 - '
-                    'set SENDGRID_API_KEY to send over HTTPS instead]')
+                    'set BREVO_API_KEY (free forever) or SENDGRID_API_KEY to send over HTTPS instead]')
         raise CommandError(
             f'email NOT sent. Last error: {type(last_error).__name__}: {last_error}.{hint}')
