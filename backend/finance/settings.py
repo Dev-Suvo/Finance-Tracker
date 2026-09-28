@@ -159,13 +159,12 @@ import sys
 RUNNING_TESTS = 'test' in sys.argv
 
 # Block login until the user clicks the emailed verification link.
-# Kill-switch: set to "False" in render.yaml + push.
-# Safety interlock (production only): if no HTTPS email key is configured yet,
-# enforcement stays OFF so nobody can be locked out while email setup is
-# pending; it activates automatically once BREVO/SENDGRID_API_KEY exists.
+# ALWAYS enforced (no auto-off). Kill-switch: set to "False" in render.yaml
+# + push — manual emergency override only.
+# Because verification can never be skipped, RegisterView refuses signups in
+# production while no email transport key exists, so no account can be
+# created that would be impossible to verify.
 ENFORCE_EMAIL_VERIFICATION = env.bool('ENFORCE_EMAIL_VERIFICATION', default=True)
-if ENFORCE_EMAIL_VERIFICATION and not DEBUG and not RUNNING_TESTS:
-    ENFORCE_EMAIL_VERIFICATION = bool(BREVO_API_KEY or SENDGRID_API_KEY)
 
 # Tests never touch the network: queue emails in-memory instead of SMTP.
 if RUNNING_TESTS:

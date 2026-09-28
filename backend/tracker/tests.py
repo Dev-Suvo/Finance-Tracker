@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest import mock
 
 from django.contrib.auth.models import User
 from django.core import mail
@@ -244,3 +245,25 @@ class EmailVerificationTests(TestCase):
                              {'username': 'bossadmin', 'password': 'AdminPass1!'},
                              HTTP_HOST='localhost')
         self.assertEqual(r.status_code, 200, r.content)
+
+    @override_settings(RUNNING_TESTS=False, BREVO_API_KEY='', SENDGRID_API_KEY='')
+    def test_signup_refused_when_no_email_transport_in_production(self):
+        r = self.client.post(f'{self.BASE}/auth/register/', {
+            'first_name': 'V', 'last_name': 'U', 'username': 'nogate',
+            'email': 'nogate@example.com', 'phone_number': '9876543210',
+            'password': 'GuitarHero7!', 'confirm_password': 'GuitarHero7!',
+        }, HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 503, r.content)
+        self.assertFalse(User.objects.filter(username='nogate').exists())
+
+    @override_settings(RUNNING_TESTS=False, BREVO_API_KEY='test-key')
+    @mock.patch('tracker.views.send_email_async')
+    def test_signup_allowed_when_transport_key_present(self, send_mock):
+        r = self.client.post(f'{self.BASE}/auth/register/', {
+            'first_name': 'V', 'last_name': 'U', 'username': 'keygate',
+            'email': 'keygate@example.com', 'phone_number': '9876543210',
+            'password': 'GuitarHero7!', 'confirm_password': 'GuitarHero7!',
+        }, HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 201, r.content)
+        self.assertTrue(User.objects.filter(username='keygate').exists())
+        send_mock.assert_called_once()

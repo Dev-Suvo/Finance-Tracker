@@ -272,6 +272,16 @@ class RegisterView(APIView):
                     flat_errors.append(str(errs))
             return Response({'errors': flat_errors}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Production safety: verification is always required to log in, so an
+        # account created while no email transport exists could never be
+        # verified. Refuse the signup instead of creating a locked-out user.
+        if (not settings.DEBUG and not getattr(settings, 'RUNNING_TESTS', False)
+                and not (settings.BREVO_API_KEY or settings.SENDGRID_API_KEY)):
+            return Response(
+                {'errors': ['Registration is temporarily unavailable. '
+                            'Please try again later.']},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
         data = serializer.validated_data
         email_token = secrets.token_hex(32)
 
