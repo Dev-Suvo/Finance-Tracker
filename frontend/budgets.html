@@ -71,7 +71,7 @@
             render(r.data.budgets);
 
             const select = document.getElementById('budget-category');
-            if (!select.options.length) {
+            if (select.options.length <= 1) {
                 r.data.expense_categories.forEach(function (c) {
                     const opt = document.createElement('option');
                     opt.value = c;
