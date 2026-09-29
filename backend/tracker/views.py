@@ -310,20 +310,23 @@ class RegisterView(APIView):
 
 
 class LoginView(TokenObtainPairView):
-    """JWT login. Refuses accounts whose email is not yet verified
-    (kill-switch: ENFORCE_EMAIL_VERIFICATION setting). Accounts without a
-    UserProfile (e.g. Django-admin superusers) are always allowed."""
+    """JWT login. Any non-staff account must have a UserProfile with
+    email_verified=True — accounts with NO profile (created in the admin
+    panel, or from before verification existed) are blocked too, so
+    nothing can slip past. Staff/superuser accounts are exempt: they
+    exist for the admin panel and have no email to verify."""
 
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200 and getattr(settings, 'ENFORCE_EMAIL_VERIFICATION', True):
             user = User.objects.filter(username=request.data.get('username', '')).first()
-            profile = UserProfile.objects.filter(user=user).first() if user else None
-            if profile and not profile.email_verified:
-                return Response(
-                    {'detail': 'Email not verified. Check your inbox for the verification '
-                               'link, or resend it below.'},
-                    status=status.HTTP_403_FORBIDDEN)
+            if user and not (user.is_staff or user.is_superuser):
+                profile = UserProfile.objects.filter(user=user).first()
+                if not profile or not profile.email_verified:
+                    return Response(
+                        {'detail': 'Email not verified. Check your inbox for the verification '
+                                   'link, or resend it below.'},
+                        status=status.HTTP_403_FORBIDDEN)
         return response
 
 
@@ -338,8 +341,14 @@ class ResendVerificationView(APIView):
             return Response({'detail': 'Invalid username or password.'},
                             status=status.HTTP_401_UNAUTHORIZED)
         profile = UserProfile.objects.filter(user=user).first()
-        if not profile or profile.email_verified:
+        if profile and profile.email_verified:
             return Response({'detail': 'This account is already verified. You can log in.'})
+        if not profile:
+            # Self-heal: account predates verification / was made in the
+            # admin panel — create its profile so it can verify like any
+            # other account instead of being locked out forever.
+            profile = UserProfile.objects.create(
+                user=user, email_token=secrets.token_hex(32))
         try:
             _send_verification_email(user)
         except Exception as e:

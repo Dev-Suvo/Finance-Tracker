@@ -253,6 +253,37 @@ class EmailVerificationTests(TestCase):
                              HTTP_HOST='localhost')
         self.assertEqual(r.status_code, 200, r.content)
 
+    @override_settings(ENFORCE_EMAIL_VERIFICATION=True)
+    def test_normal_user_without_profile_is_blocked(self):
+        User.objects.create_user('profileless', 'pl@example.com', 'TestPass1!')
+        r = self.client.post(f'{self.BASE}/auth/token/',
+                             {'username': 'profileless', 'password': 'TestPass1!'},
+                             HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 403, r.content)
+
+    @override_settings(ENFORCE_EMAIL_VERIFICATION=True)
+    def test_resend_self_heals_profileless_user(self):
+        User.objects.create_user('healme', 'heal@example.com', 'TestPass1!')
+        r = self.client.post(f'{self.BASE}/auth/resend-verification/',
+                             {'username': 'healme', 'password': 'TestPass1!'},
+                             HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 200, r.content)
+        profile = UserProfile.objects.get(user__username='healme')
+        self.assertTrue(profile.email_token)
+
+        r = self.client.post(f'{self.BASE}/auth/token/',
+                             {'username': 'healme', 'password': 'TestPass1!'},
+                             HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 403, r.content)
+
+        r = self.client.get(f'{self.BASE}/auth/verify-email/{profile.email_token}/',
+                            HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 200, r.content)
+        r = self.client.post(f'{self.BASE}/auth/token/',
+                             {'username': 'healme', 'password': 'TestPass1!'},
+                             HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 200, r.content)
+
     @override_settings(RUNNING_TESTS=False, BREVO_API_KEY='', SENDGRID_API_KEY='')
     def test_signup_refused_when_no_email_transport_in_production(self):
         r = self.client.post(f'{self.BASE}/auth/register/', {
