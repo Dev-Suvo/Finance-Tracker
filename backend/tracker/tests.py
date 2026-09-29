@@ -305,3 +305,32 @@ class EmailVerificationTests(TestCase):
         self.assertEqual(r.status_code, 201, r.content)
         self.assertTrue(User.objects.filter(username='keygate').exists())
         send_mock.assert_called_once()
+
+
+class RefreshTokenBlacklistTests(TestCase):
+    def test_old_refresh_token_dies_after_rotation(self):
+        r = self.client.post('/api/auth/register/', {
+            'first_name': 'R', 'last_name': 'T', 'username': 'refreshuser',
+            'email': 'refresh@example.com', 'phone_number': '9876543210',
+            'password': 'GuitarHero7!', 'confirm_password': 'GuitarHero7!',
+        }, HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 201, r.content)
+        profile = UserProfile.objects.get(user__username='refreshuser')
+        self.client.get(f'/api/auth/verify-email/{profile.email_token}/',
+                        HTTP_HOST='localhost')
+        r = self.client.post('/api/auth/token/',
+                             {'username': 'refreshuser', 'password': 'GuitarHero7!'},
+                             HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 200, r.content)
+        old_refresh = r.json()['refresh']
+
+        # first refresh succeeds and rotates
+        r = self.client.post('/api/auth/token/refresh/',
+                             {'refresh': old_refresh}, HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertNotEqual(r.json()['refresh'], old_refresh)
+
+        # reusing the OLD refresh token must now be rejected (blacklisted)
+        r = self.client.post('/api/auth/token/refresh/',
+                             {'refresh': old_refresh}, HTTP_HOST='localhost')
+        self.assertEqual(r.status_code, 401, r.content)

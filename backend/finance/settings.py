@@ -32,6 +32,10 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'rest_framework_simplejwt',
+    # Required for BLACKLIST_AFTER_ROTATION to actually work: without this
+    # app, SimpleJWT silently skips blacklisting and old refresh tokens
+    # stay valid for their full lifetime.
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'tracker'
 ]
